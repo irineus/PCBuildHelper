@@ -1,0 +1,32 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:38351",
+      "sslPort": 44357
+    }
+  },
+  "profiles": {
+    "PCBuildWeb": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7173;http://localhost:5173",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "VaultUri": "https://irineuazurekeyvault.vault.azure.net/",
+        "AZURE_USERNAME": "irineus@gmail.com"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "VaultUri": "https://irineuazurekeyvault.vault.azure.net/",
+        "AZURE_USERNAME": "irineus@gmail.com"
+      }
+    }
+  }
+}
