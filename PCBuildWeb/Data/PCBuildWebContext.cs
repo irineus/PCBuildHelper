@@ -22,5 +22,9 @@ namespace PCBuildWeb.Data
         public DbSet<Manufacturer> Manufacturer { get; set; }
         public DbSet<MoboChipset> MoboChipset { get; set; }
         public DbSet<CaseFan> CaseFan { get; set; }
+        public DbSet<PCBuildWeb.Models.Entities.Properties.MoboSize> MoboSize { get; set; }
+        public DbSet<PCBuildWeb.Models.Entities.Properties.MultiGPU> MultiGPU { get; set; }
+        public DbSet<PCBuildWeb.Models.Entities.Properties.PowerConnector> PowerConnector { get; set; }
+        public DbSet<PCBuildWeb.Models.Entities.Properties.PSUSize> PSUSize { get; set; }
     }
 }
