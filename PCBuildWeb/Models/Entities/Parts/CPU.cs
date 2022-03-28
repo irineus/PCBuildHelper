@@ -9,7 +9,8 @@ namespace PCBuildWeb.Models.Entities.Parts
         public int RankingScore { get; set; }
         public int Frequency { get; set; }
         public int Cores { get; set; }
-        public CPUSocket Socket { get; set; }
+        public CPUSocket CPUSocket { get; set; }
+        public int CPUSocketId { get; set; }
         public int Wattage { get; set; }
         public bool Overclockable { get; set; }
         public int ThermalThrottling { get; set; }
