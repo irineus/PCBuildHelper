@@ -5,6 +5,11 @@ namespace PCBuildWeb.Models.Entities.Parts
 {
     public class CaseFan : ComputerPart
     {
+        public CaseFan()
+        {
+            this.IncludedInThisCases = new HashSet<Case>();
+        }
+
         [Display(Name = "Air Flow")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 999.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
@@ -16,6 +21,6 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Air Pressure")]
         [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double? AirPressure { get; set; }
-
+        public virtual ICollection<Case> IncludedInThisCases { get; set; }
     }
 }
