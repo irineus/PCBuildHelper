@@ -1,0 +1,117 @@
+﻿@model PCBuildWeb.Models.Entities.Parts.Case
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Case</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CaseSize" class="control-label"></label>
+                <select asp-for="CaseSize" class="form-control"></select>
+                <span asp-validation-for="CaseSize" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Number120mmSlots" class="control-label"></label>
+                <input asp-for="Number120mmSlots" class="form-control" />
+                <span asp-validation-for="Number120mmSlots" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Number140mmSlots" class="control-label"></label>
+                <input asp-for="Number140mmSlots" class="form-control" />
+                <span asp-validation-for="Number140mmSlots" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaxPsuLength" class="control-label"></label>
+                <input asp-for="MaxPsuLength" class="form-control" />
+                <span asp-validation-for="MaxPsuLength" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaxGPULength" class="control-label"></label>
+                <input asp-for="MaxGPULength" class="form-control" />
+                <span asp-validation-for="MaxGPULength" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaxCPUFanHeight" class="control-label"></label>
+                <input asp-for="MaxCPUFanHeight" class="form-control" />
+                <span asp-validation-for="MaxCPUFanHeight" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="UseForWcJobs" /> @Html.DisplayNameFor(model => model.UseForWcJobs)
+                </label>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsOpenBench" /> @Html.DisplayNameFor(model => model.IsOpenBench)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="RestrictedGpuLength" class="control-label"></label>
+                <input asp-for="RestrictedGpuLength" class="form-control" />
+                <span asp-validation-for="RestrictedGpuLength" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InherentCooling" class="control-label"></label>
+                <input asp-for="InherentCooling" class="form-control" />
+                <span asp-validation-for="InherentCooling" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PartType" class="control-label"></label>
+                <select asp-for="PartType" class="form-control"></select>
+                <span asp-validation-for="PartType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ManufacturerId" class="control-label"></label>
+                <select asp-for="ManufacturerId" class ="form-control" asp-items="ViewBag.ManufacturerId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SellPrice" class="control-label"></label>
+                <input asp-for="SellPrice" class="form-control" />
+                <span asp-validation-for="SellPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LevelUnlock" class="control-label"></label>
+                <input asp-for="LevelUnlock" class="form-control" />
+                <span asp-validation-for="LevelUnlock" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LevelPercent" class="control-label"></label>
+                <input asp-for="LevelPercent" class="form-control" />
+                <span asp-validation-for="LevelPercent" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lighting" class="control-label"></label>
+                <input asp-for="Lighting" class="form-control" />
+                <span asp-validation-for="Lighting" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

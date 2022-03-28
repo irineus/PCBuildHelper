@@ -6,6 +6,11 @@ namespace PCBuildWeb.Models.Entities.Parts
 {
     public class GPU : ComputerPart
     {
+        public GPU()
+        {
+            this.PowerConnectors = new HashSet<PowerConnector>();
+        }
+
         public GPUChipsetBrand ChipsetBrand { get; set; }
         public GPUChipset GPUChipset { get; set; }
         public int GPUChipsetId { get; set; }
@@ -24,7 +29,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         public int Wattage { get; set; }
         public MultiGPU MultiGPU { get; set; }
         public double SlotSize { get; set; }
-        public List<PowerConnector> PowerConnectors { get; set; }
+        public virtual ICollection<PowerConnector> PowerConnectors { get; set; }
         public double ScoreToValueRatio { get; set; }
         public int SingleGPUScore { get; set; }
         public int DualGPUScore { get; set; }

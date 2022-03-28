@@ -6,13 +6,18 @@ namespace PCBuildWeb.Models.Entities.Parts
 {
     public class Motherboard : ComputerPart
     {
+        public Motherboard()
+        {
+            this.MultiGPUSupport = new HashSet<MultiGPU>();
+        }
+
         public MoboChipset MoboChipset { get; set; }
         public int MoboChipsetId { get; set; }
         public CPUSocket CPUSocket { get; set; }
         public int CPUSocketId { get; set; }
         public MoboSize Size { get; set; }
         public int MaxRamSpeed { get; set; }
-        public List<MultiGPU> MultiGPUSupport { get; set; }
+        public virtual ICollection<MultiGPU> MultiGPUSupport { get; set; }
         public int DualGPUMaxSlotSize { get; set; }
         public bool Overclockable { get; set; }
         public int M2Slots { get; set; }
