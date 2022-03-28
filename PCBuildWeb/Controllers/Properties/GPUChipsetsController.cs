@@ -8,24 +8,25 @@ using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Properties;
 
-namespace PCBuildWeb.Controllers
+namespace PCBuildWeb.Controllers.Properties
 {
-    public class MoboChipsetsController : Controller
+    public class GPUChipsetsController : Controller
     {
         private readonly PCBuildWebContext _context;
 
-        public MoboChipsetsController(PCBuildWebContext context)
+        public GPUChipsetsController(PCBuildWebContext context)
         {
             _context = context;
         }
 
-        // GET: MoboChipsets
+        // GET: GPUChipsets
         public async Task<IActionResult> Index()
         {
-            return View(await _context.MoboChipset.ToListAsync());
+            var pCBuildWebContext = _context.GPUChipset.Include(g => g.ChipsetSeries);
+            return View(await pCBuildWebContext.ToListAsync());
         }
 
-        // GET: MoboChipsets/Details/5
+        // GET: GPUChipsets/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +34,42 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var moboChipset = await _context.MoboChipset
+            var gPUChipset = await _context.GPUChipset
+                .Include(g => g.ChipsetSeries)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (moboChipset == null)
+            if (gPUChipset == null)
             {
                 return NotFound();
             }
 
-            return View(moboChipset);
+            return View(gPUChipset);
         }
 
-        // GET: MoboChipsets/Create
+        // GET: GPUChipsets/Create
         public IActionResult Create()
         {
+            ViewData["ChipsetSeriesId"] = new SelectList(_context.GPUChipsetSeries, "Id", "Id");
             return View();
         }
 
-        // POST: MoboChipsets/Create
+        // POST: GPUChipsets/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] MoboChipset moboChipset)
+        public async Task<IActionResult> Create([Bind("ChipsetSeriesId,Id,Name")] GPUChipset gPUChipset)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(moboChipset);
+                _context.Add(gPUChipset);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(moboChipset);
+            ViewData["ChipsetSeriesId"] = new SelectList(_context.GPUChipsetSeries, "Id", "Id", gPUChipset.ChipsetSeriesId);
+            return View(gPUChipset);
         }
 
-        // GET: MoboChipsets/Edit/5
+        // GET: GPUChipsets/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +77,23 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var moboChipset = await _context.MoboChipset.FindAsync(id);
-            if (moboChipset == null)
+            var gPUChipset = await _context.GPUChipset.FindAsync(id);
+            if (gPUChipset == null)
             {
                 return NotFound();
             }
-            return View(moboChipset);
+            ViewData["ChipsetSeriesId"] = new SelectList(_context.GPUChipsetSeries, "Id", "Name", gPUChipset.ChipsetSeriesId);
+            return View(gPUChipset);
         }
 
-        // POST: MoboChipsets/Edit/5
+        // POST: GPUChipsets/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] MoboChipset moboChipset)
+        public async Task<IActionResult> Edit(int id, [Bind("ChipsetSeriesId,Id,Name")] GPUChipset gPUChipset)
         {
-            if (id != moboChipset.Id)
+            if (id != gPUChipset.Id)
             {
                 return NotFound();
             }
@@ -97,12 +102,12 @@ namespace PCBuildWeb.Controllers
             {
                 try
                 {
-                    _context.Update(moboChipset);
+                    _context.Update(gPUChipset);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MoboChipsetExists(moboChipset.Id))
+                    if (!GPUChipsetExists(gPUChipset.Id))
                     {
                         return NotFound();
                     }
@@ -113,10 +118,11 @@ namespace PCBuildWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(moboChipset);
+            ViewData["ChipsetSeriesId"] = new SelectList(_context.GPUChipsetSeries, "Id", "Id", gPUChipset.ChipsetSeriesId);
+            return View(gPUChipset);
         }
 
-        // GET: MoboChipsets/Delete/5
+        // GET: GPUChipsets/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,30 +130,31 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var moboChipset = await _context.MoboChipset
+            var gPUChipset = await _context.GPUChipset
+                .Include(g => g.ChipsetSeries)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (moboChipset == null)
+            if (gPUChipset == null)
             {
                 return NotFound();
             }
 
-            return View(moboChipset);
+            return View(gPUChipset);
         }
 
-        // POST: MoboChipsets/Delete/5
+        // POST: GPUChipsets/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var moboChipset = await _context.MoboChipset.FindAsync(id);
-            _context.MoboChipset.Remove(moboChipset);
+            var gPUChipset = await _context.GPUChipset.FindAsync(id);
+            _context.GPUChipset.Remove(gPUChipset);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MoboChipsetExists(int id)
+        private bool GPUChipsetExists(int id)
         {
-            return _context.MoboChipset.Any(e => e.Id == id);
+            return _context.GPUChipset.Any(e => e.Id == id);
         }
     }
 }

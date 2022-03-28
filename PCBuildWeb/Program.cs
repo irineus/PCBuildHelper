@@ -1,8 +1,10 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
+using PCBuildWeb.Models.ViewModels;
 using PCBuildWeb.Services.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +33,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    options.ViewLocationExpanders.Add(new ViewLocationExtension());
+});
 
 var app = builder.Build();
 

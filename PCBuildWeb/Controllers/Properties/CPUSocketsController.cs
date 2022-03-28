@@ -8,24 +8,24 @@ using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Properties;
 
-namespace PCBuildWeb.Controllers
+namespace PCBuildWeb.Controllers.Properties
 {
-    public class GPUChipsetSeriesController : Controller
+    public class CPUSocketsController : Controller
     {
         private readonly PCBuildWebContext _context;
 
-        public GPUChipsetSeriesController(PCBuildWebContext context)
+        public CPUSocketsController(PCBuildWebContext context)
         {
             _context = context;
         }
 
-        // GET: GPUChipsetSeries
+        // GET: CPUSockets
         public async Task<IActionResult> Index()
         {
-            return View(await _context.GPUChipsetSeries.ToListAsync());
+            return View(await _context.CPUSocket.ToListAsync());
         }
 
-        // GET: GPUChipsetSeries/Details/5
+        // GET: CPUSockets/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +33,39 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var gPUChipsetSeries = await _context.GPUChipsetSeries
+            var cPUSocket = await _context.CPUSocket
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (gPUChipsetSeries == null)
+            if (cPUSocket == null)
             {
                 return NotFound();
             }
 
-            return View(gPUChipsetSeries);
+            return View(cPUSocket);
         }
 
-        // GET: GPUChipsetSeries/Create
+        // GET: CPUSockets/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: GPUChipsetSeries/Create
+        // POST: CPUSockets/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] GPUChipsetSeries gPUChipsetSeries)
+        public async Task<IActionResult> Create([Bind("Id,Name")] CPUSocket cPUSocket)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(gPUChipsetSeries);
+                _context.Add(cPUSocket);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(gPUChipsetSeries);
+            return View(cPUSocket);
         }
 
-        // GET: GPUChipsetSeries/Edit/5
+        // GET: CPUSockets/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +73,22 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var gPUChipsetSeries = await _context.GPUChipsetSeries.FindAsync(id);
-            if (gPUChipsetSeries == null)
+            var cPUSocket = await _context.CPUSocket.FindAsync(id);
+            if (cPUSocket == null)
             {
                 return NotFound();
             }
-            return View(gPUChipsetSeries);
+            return View(cPUSocket);
         }
 
-        // POST: GPUChipsetSeries/Edit/5
+        // POST: CPUSockets/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] GPUChipsetSeries gPUChipsetSeries)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] CPUSocket cPUSocket)
         {
-            if (id != gPUChipsetSeries.Id)
+            if (id != cPUSocket.Id)
             {
                 return NotFound();
             }
@@ -97,12 +97,12 @@ namespace PCBuildWeb.Controllers
             {
                 try
                 {
-                    _context.Update(gPUChipsetSeries);
+                    _context.Update(cPUSocket);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GPUChipsetSeriesExists(gPUChipsetSeries.Id))
+                    if (!CPUSocketExists(cPUSocket.Id))
                     {
                         return NotFound();
                     }
@@ -113,10 +113,10 @@ namespace PCBuildWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(gPUChipsetSeries);
+            return View(cPUSocket);
         }
 
-        // GET: GPUChipsetSeries/Delete/5
+        // GET: CPUSockets/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,30 +124,30 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var gPUChipsetSeries = await _context.GPUChipsetSeries
+            var cPUSocket = await _context.CPUSocket
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (gPUChipsetSeries == null)
+            if (cPUSocket == null)
             {
                 return NotFound();
             }
 
-            return View(gPUChipsetSeries);
+            return View(cPUSocket);
         }
 
-        // POST: GPUChipsetSeries/Delete/5
+        // POST: CPUSockets/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var gPUChipsetSeries = await _context.GPUChipsetSeries.FindAsync(id);
-            _context.GPUChipsetSeries.Remove(gPUChipsetSeries);
+            var cPUSocket = await _context.CPUSocket.FindAsync(id);
+            _context.CPUSocket.Remove(cPUSocket);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool GPUChipsetSeriesExists(int id)
+        private bool CPUSocketExists(int id)
         {
-            return _context.GPUChipsetSeries.Any(e => e.Id == id);
+            return _context.CPUSocket.Any(e => e.Id == id);
         }
     }
 }
