@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Models.Entities.Properties;
+using PCBuildWeb.Models.Entities.Parts;
 
 namespace PCBuildWeb.Data
 {
@@ -20,6 +21,6 @@ namespace PCBuildWeb.Data
         public DbSet<GPUChipset> GPUChipset { get; set; }
         public DbSet<Manufacturer> Manufacturer { get; set; }
         public DbSet<MoboChipset> MoboChipset { get; set; }
-
+        public DbSet<CaseFan> CaseFan { get; set; }
     }
 }
