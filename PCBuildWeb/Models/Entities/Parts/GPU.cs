@@ -7,7 +7,8 @@ namespace PCBuildWeb.Models.Entities.Parts
     public class GPU : ComputerPart
     {
         public GPUChipsetBrand ChipsetBrand { get; set; }
-        public GPUChipset Chipset { get; set; }
+        public GPUChipset GPUChipset { get; set; }
+        public int GPUChipsetId { get; set; }
         public bool IsWaterCooled { get; set; }
         public int RankingScore { get; set; }
         public int VRAM { get; set; }

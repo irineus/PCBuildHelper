@@ -6,8 +6,10 @@ namespace PCBuildWeb.Models.Entities.Parts
 {
     public class Motherboard : ComputerPart
     {
-        public MoboChipset Chipset { get; set; }
+        public MoboChipset MoboChipset { get; set; }
+        public int MoboChipsetId { get; set; }
         public CPUSocket CPUSocket { get; set; }
+        public int CPUSocketId { get; set; }
         public MoboSize Size { get; set; }
         public int MaxRamSpeed { get; set; }
         public List<MultiGPU> MultiGPUSupport { get; set; }
