@@ -215,6 +215,46 @@ namespace PCBuildWeb.Services.Seeding
             {
                 _context.MoboChipset.AddRange(moboChipsets);
             }
+            #region MoboSize
+            List<MoboSize> moboSizes = new List<MoboSize>();
+            MoboSize Mini_ITX = new MoboSize() { Id = 1, Name = "Mini-ITX" }; moboSizes.Add(Mini_ITX);
+            MoboSize Micro_ATX = new MoboSize() { Id = 2, Name = "Micro-ATX" }; moboSizes.Add(Micro_ATX);
+            MoboSize S_ATX = new MoboSize() { Id = 3, Name = "S-ATX" }; moboSizes.Add(S_ATX);
+            MoboSize E_ATX = new MoboSize() { Id = 4, Name = "E-ATX" }; moboSizes.Add(E_ATX);
+            MoboSize XL_ATX = new MoboSize() { Id = 5, Name = "XL-ATX" }; moboSizes.Add(XL_ATX);
+            MoboSize SSI_EEB = new MoboSize() { Id = 6, Name = "SSI-EEB" }; moboSizes.Add(SSI_EEB);
+            #endregion
+            if (!_context.MoboSize.Any())
+            {
+                _context.MoboSize.AddRange(moboSizes);
+            }
+            #region MultiGPU
+            List<MultiGPU> multiGPUs = new List<MultiGPU>();
+            MultiGPU CrossFire = new MultiGPU() { Id = 1, Name = "CrossFire" }; multiGPUs.Add(CrossFire);
+            MultiGPU SLI = new MultiGPU() { Id = 2, Name = "SLI" }; multiGPUs.Add(SLI);
+            #endregion
+            if (!_context.MultiGPU.Any())
+            {
+                _context.MultiGPU.AddRange(multiGPUs);
+            }
+            #region PowerConnector
+            List<PowerConnector> powerConnectors = new List<PowerConnector>();
+            PowerConnector Six_Pin = new PowerConnector() { Id = 1, Name = "Six Pin" }; powerConnectors.Add(Six_Pin);
+            PowerConnector Eight_Pin = new PowerConnector() { Id = 2, Name = "Eight Pin" }; powerConnectors.Add(Eight_Pin);
+            #endregion
+            if (!_context.PowerConnector.Any())
+            {
+                _context.PowerConnector.AddRange(powerConnectors);
+            }
+            #region PSUSize
+            List<PSUSize> psuSizes = new List<PSUSize>();
+            PSUSize SFX = new PSUSize() { Id = 1, Name = "SFX" }; psuSizes.Add(SFX);
+            PSUSize ATX = new PSUSize() { Id = 2, Name = "ATX" }; psuSizes.Add(ATX);
+            #endregion
+            if (!_context.PSUSize.Any())
+            {
+                _context.PSUSize.AddRange(psuSizes);
+            }
             #region CaseFan
             List<CaseFan> caseFans = new List<CaseFan>();
             CaseFan XPG_VENTO_120 = new CaseFan() { Id = 1, Name = "XPG VENTO 120", PartType = PartType.CaseFan, Manufacturer = ADATA, Price = 30, SellPrice = 10, LevelUnlock = 31, LevelPercent = 1, Lighting = Color.RGB, AirFlow = 45.3, Size = 120, AirPressure = 0.68 }; caseFans.Add(XPG_VENTO_120);
@@ -372,6 +412,13 @@ namespace PCBuildWeb.Services.Seeding
             {
                 _context.CaseFan.AddRange(caseFans);
             }
+            #region Case
+            List<Case> cases = new List<Case>();
+            #endregion
+            //if (!_context.Case.Any())
+            //{
+            //    _context.Case.AddRange(cases);
+            //}
             _context.SaveChanges();
         }
     }
