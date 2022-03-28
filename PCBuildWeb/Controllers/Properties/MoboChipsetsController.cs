@@ -8,24 +8,24 @@ using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Properties;
 
-namespace PCBuildWeb.Controllers
+namespace PCBuildWeb.Controllers.Properties
 {
-    public class ManufacturersController : Controller
+    public class MoboChipsetsController : Controller
     {
         private readonly PCBuildWebContext _context;
 
-        public ManufacturersController(PCBuildWebContext context)
+        public MoboChipsetsController(PCBuildWebContext context)
         {
             _context = context;
         }
 
-        // GET: Manufacturers
+        // GET: MoboChipsets
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Manufacturer.ToListAsync());
+            return View(await _context.MoboChipset.ToListAsync());
         }
 
-        // GET: Manufacturers/Details/5
+        // GET: MoboChipsets/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +33,39 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var manufacturer = await _context.Manufacturer
+            var moboChipset = await _context.MoboChipset
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (manufacturer == null)
+            if (moboChipset == null)
             {
                 return NotFound();
             }
 
-            return View(manufacturer);
+            return View(moboChipset);
         }
 
-        // GET: Manufacturers/Create
+        // GET: MoboChipsets/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Manufacturers/Create
+        // POST: MoboChipsets/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Manufacturer manufacturer)
+        public async Task<IActionResult> Create([Bind("Id,Name")] MoboChipset moboChipset)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(manufacturer);
+                _context.Add(moboChipset);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(manufacturer);
+            return View(moboChipset);
         }
 
-        // GET: Manufacturers/Edit/5
+        // GET: MoboChipsets/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +73,22 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var manufacturer = await _context.Manufacturer.FindAsync(id);
-            if (manufacturer == null)
+            var moboChipset = await _context.MoboChipset.FindAsync(id);
+            if (moboChipset == null)
             {
                 return NotFound();
             }
-            return View(manufacturer);
+            return View(moboChipset);
         }
 
-        // POST: Manufacturers/Edit/5
+        // POST: MoboChipsets/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Manufacturer manufacturer)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] MoboChipset moboChipset)
         {
-            if (id != manufacturer.Id)
+            if (id != moboChipset.Id)
             {
                 return NotFound();
             }
@@ -97,12 +97,12 @@ namespace PCBuildWeb.Controllers
             {
                 try
                 {
-                    _context.Update(manufacturer);
+                    _context.Update(moboChipset);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ManufacturerExists(manufacturer.Id))
+                    if (!MoboChipsetExists(moboChipset.Id))
                     {
                         return NotFound();
                     }
@@ -113,10 +113,10 @@ namespace PCBuildWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(manufacturer);
+            return View(moboChipset);
         }
 
-        // GET: Manufacturers/Delete/5
+        // GET: MoboChipsets/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,30 +124,30 @@ namespace PCBuildWeb.Controllers
                 return NotFound();
             }
 
-            var manufacturer = await _context.Manufacturer
+            var moboChipset = await _context.MoboChipset
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (manufacturer == null)
+            if (moboChipset == null)
             {
                 return NotFound();
             }
 
-            return View(manufacturer);
+            return View(moboChipset);
         }
 
-        // POST: Manufacturers/Delete/5
+        // POST: MoboChipsets/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var manufacturer = await _context.Manufacturer.FindAsync(id);
-            _context.Manufacturer.Remove(manufacturer);
+            var moboChipset = await _context.MoboChipset.FindAsync(id);
+            _context.MoboChipset.Remove(moboChipset);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ManufacturerExists(int id)
+        private bool MoboChipsetExists(int id)
         {
-            return _context.Manufacturer.Any(e => e.Id == id);
+            return _context.MoboChipset.Any(e => e.Id == id);
         }
     }
 }
