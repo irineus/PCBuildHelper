@@ -1,0 +1,141 @@
+﻿@model PCBuildWeb.Models.Entities.Parts.Motherboard
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Motherboard</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.MoboChipset)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.MoboChipset.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CPUSocket)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CPUSocket.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Size)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Size.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.MaxRamSpeed)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.MaxRamSpeed)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DualGPUMaxSlotSize)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DualGPUMaxSlotSize)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Overclockable)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Overclockable)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.M2Slots)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.M2Slots)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.M2SlotsSupportingHeatsinks)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.M2SlotsSupportingHeatsinks)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RamSlots)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RamSlots)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SATASlots)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SATASlots)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IncludesCPUBlock)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IncludesCPUBlock)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DefaultRamSpeed)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DefaultRamSpeed)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.PartType)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PartType)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Manufacturer)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Manufacturer.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Price)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Price)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SellPrice)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SellPrice)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LevelUnlock)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LevelUnlock)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LevelPercent)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LevelPercent)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Lighting)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Lighting)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
