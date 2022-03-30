@@ -11,7 +11,7 @@ namespace PCBuildWeb.Models.Entities.Parts
             this.CompatibleSockets = new HashSet<CPUSocket>();
         }
 
-        [Display(Name="Is a Watercooler?")]
+        [Display(Name="Is a Watercooler (AIO)?")]
         public bool WaterCooler { get; set; }
         [Display(Name = "Is a Passive Cooler (no fans)?")]
         public bool Passive { get; set; }
@@ -26,15 +26,15 @@ namespace PCBuildWeb.Models.Entities.Parts
         public int Height { get; set; }
         [Display(Name = "Radiator Size (for Watercooler)")]
         [Range(1, 999, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int RadiatorSize { get; set; }
+        public int? RadiatorSize { get; set; }
         [Display(Name = "Radiator Slots  (for Watercooler)")]
         [Range(0, 10, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int RadiatorSlots { get; set; }
+        public int? RadiatorSlots { get; set; }
         [Display(Name = "Radiator Thickness (for Watercooler)")]
         [Range(0.01, 1.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public double RadiatorThickness { get; set; }
+        public double? RadiatorThickness { get; set; }
         [Display(Name = "Air Pressure")]
         [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public double AirPressure { get; set; }
+        public double? AirPressure { get; set; }
     }
 }
