@@ -1,12 +1,26 @@
 ﻿using PCBuildWeb.Models.Entities.Bases;
+using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
     public class CaseFan : ComputerPart
     {
-        public double AirFlow { get; set; }
-        public int Size { get; set; }
-        public double AirPressure { get; set; }
+        public CaseFan()
+        {
+            this.IncludedInThisCases = new HashSet<Case>();
+        }
 
+        [Display(Name = "Air Flow")]
+        [Required(ErrorMessage = "{0} is required")]
+        [Range(1.00, 999.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
+        public double AirFlow { get; set; }
+        [Display(Name = "Size")]
+        [Required(ErrorMessage = "{0} is required")]
+        [Range(90, 500, ErrorMessage = "{0} should be a value between {1} and {2}")]
+        public int Size { get; set; }
+        [Display(Name = "Air Pressure")]
+        [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
+        public double? AirPressure { get; set; }
+        public virtual ICollection<Case> IncludedInThisCases { get; set; }
     }
 }
