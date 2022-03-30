@@ -21,7 +21,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         public GPUChipset GPUChipset { get; set; }
         [Display(Name = "GPU Chipset")]
         public int GPUChipsetId { get; set; }
-        [Display(Name = "Watercooled (AIO)?")]
+        [Display(Name = "Watercooled?")]
         public bool IsWaterCooled { get; set; }
         [Display(Name = "Ranking Score")]
         [Required(ErrorMessage = "{0} is required")]
@@ -72,15 +72,15 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(10, 1000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int Wattage { get; set; }
         [ForeignKey("MultiGPUId")]
-        public MultiGPU MultiGPU { get; set; }
+        public MultiGPU? MultiGPU { get; set; }
         [Display(Name = "Multi GPU Type")]
-        public int MultiGPUId { get; set; }
+        public int? MultiGPUId { get; set; }
         [Display(Name = "Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 4.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double SlotSize { get; set; }
         [Display(Name = "Power Connector List")]
-        public virtual ICollection<PowerConnector> PowerConnectors { get; set; }
+        public virtual ICollection<PowerConnector>? PowerConnectors { get; set; }
         [Display(Name = "Score to Value Ratio")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 20.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
@@ -92,19 +92,19 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Double GPU Score")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(0, 50000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int DualGPUScore { get; set; }
+        public int? DualGPUScore { get; set; }
         [Display(Name = "Dual GPU Performance Increased")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(0.00, 3.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public double DualGPUPerformanceIncrease { get; set; }
+        public double? DualGPUPerformanceIncrease { get; set; }
         [Display(Name = "Overclocked Single GPU Score")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1000, 50000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int OverclockedSingleGPUScore { get; set; }
+        public int? OverclockedSingleGPUScore { get; set; }
         [Display(Name = "Overclocked Dual GPU Score")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(0, 50000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int OverclockedDualGPUScore { get; set; }
+        public int? OverclockedDualGPUScore { get; set; }
 
 
     }

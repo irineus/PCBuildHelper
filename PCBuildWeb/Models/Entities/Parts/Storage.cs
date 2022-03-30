@@ -21,7 +21,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Includes Heatsink?")]
         public bool IncludesHeatsink { get; set; }
         [Display(Name = "Heatsink Thickness")]
-        public double HeatsinkThickness { get; set; }
+        public double? HeatsinkThickness { get; set; }
 
     }
 }

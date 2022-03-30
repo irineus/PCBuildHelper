@@ -6,6 +6,7 @@
         Blue = 2,
         Red = 3,
         White = 4,
-        Green = 5
+        Green = 5,
+        PurpleBlue = 6
     }
 }
