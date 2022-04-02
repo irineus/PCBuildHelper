@@ -17,9 +17,10 @@ namespace PCBuildWeb.Controllers.Parts
         private readonly PCBuildWebContext _context;
         private readonly CPUCoolerService _cpuCoolerService;
 
-        public CPUCoolersController(PCBuildWebContext context)
+        public CPUCoolersController(PCBuildWebContext context, CPUCoolerService cpuCoolerService)
         {
             _context = context;
+            _cpuCoolerService = cpuCoolerService;
         }
 
         // GET: CPUCoolers

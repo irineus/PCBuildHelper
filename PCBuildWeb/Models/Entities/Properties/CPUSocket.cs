@@ -7,8 +7,8 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public CPUSocket()
         {
-            //this.UsedByThisCoolers = new HashSet<CPUCooler>();
-            //this.UsedByThisCPUBlocks = new HashSet<WC_CPU_Block>();
+            this.CPUCoolers = new HashSet<CPUCooler>();
+            this.WC_CPU_Blocks = new HashSet<WC_CPU_Block>();
         }
 
         public virtual ICollection<CPUCooler> CPUCoolers { get; set; }
