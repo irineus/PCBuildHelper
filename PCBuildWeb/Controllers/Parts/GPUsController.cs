@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class GPUsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly GPUService _gpuService;
 
-        public GPUsController(PCBuildWebContext context)
+        public GPUsController(PCBuildWebContext context, GPUService gpuService)
         {
             _context = context;
+            _gpuService = gpuService;
         }
 
         // GET: GPUs
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.GPU.Include(g => g.GPUChipset).Include(g => g.Manufacturer).Include(g => g.MultiGPU);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _gpuService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: GPUs/Details/5
@@ -35,11 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var gPU = await _context.GPU
-                .Include(g => g.GPUChipset)
-                .Include(g => g.Manufacturer)
-                .Include(g => g.MultiGPU)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var gPU = await _gpuService.FindByIdAsync(id.Value);
             if (gPU == null)
             {
                 return NotFound();
@@ -116,7 +115,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GPUExists(gPU.Id))
+                    if (!_gpuService.GPUExists(gPU.Id))
                     {
                         return NotFound();
                     }
@@ -163,11 +162,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.GPU.Remove(gPU);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool GPUExists(int id)
-        {
-            return _context.GPU.Any(e => e.Id == id);
         }
     }
 }

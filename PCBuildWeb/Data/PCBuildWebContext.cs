@@ -10,11 +10,11 @@ namespace PCBuildWeb.Data
 {
     public class PCBuildWebContext : DbContext
     {
-        public PCBuildWebContext (DbContextOptions<PCBuildWebContext> options)
+        public PCBuildWebContext(DbContextOptions<PCBuildWebContext> options)
             : base(options)
         {
         }
-        
+
         public DbSet<CPUSeries> CPUSeries { get; set; }
         public DbSet<CPUSocket> CPUSocket { get; set; }
         public DbSet<GPUChipsetSeries> GPUChipsetSeries { get; set; }
@@ -37,5 +37,10 @@ namespace PCBuildWeb.Data
         public DbSet<WC_CPU_Block> WC_CPU_Block { get; set; }
         public DbSet<WC_Radiator> WC_Radiator { get; set; }
         public DbSet<WC_Reservoir> WC_Reservoir { get; set; }
+
+
+        //protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //{
+        //}
     }
 }

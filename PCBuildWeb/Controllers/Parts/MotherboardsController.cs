@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class MotherboardsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly MotherboardService _motherboardService;
 
-        public MotherboardsController(PCBuildWebContext context)
+        public MotherboardsController(PCBuildWebContext context, MotherboardService motherboardService)
         {
             _context = context;
+            _motherboardService = motherboardService;
         }
 
         // GET: Motherboards
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.Motherboard.Include(m => m.CPUSocket).Include(m => m.Manufacturer).Include(m => m.MoboChipset).Include(m => m.Size);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _motherboardService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: Motherboards/Details/5
@@ -35,12 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var motherboard = await _context.Motherboard
-                .Include(m => m.CPUSocket)
-                .Include(m => m.Manufacturer)
-                .Include(m => m.MoboChipset)
-                .Include(m => m.Size)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var motherboard = await _motherboardService.FindByIdAsync(id.Value);
             if (motherboard == null)
             {
                 return NotFound();
@@ -120,7 +118,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MotherboardExists(motherboard.Id))
+                    if (!_motherboardService.MotherboardExists(motherboard.Id))
                     {
                         return NotFound();
                     }
@@ -169,11 +167,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.Motherboard.Remove(motherboard);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool MotherboardExists(int id)
-        {
-            return _context.Motherboard.Any(e => e.Id == id);
         }
     }
 }

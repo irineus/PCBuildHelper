@@ -9,6 +9,6 @@ namespace PCBuildWeb.Models.Entities.Properties
         [ForeignKey("ChipsetSeriesId")]
         public GPUChipsetSeries ChipsetSeries { get; set; }
         [Display(Name = "Chipset Series")]
-        public byte ChipsetSeriesId { get; set; }
+        public int ChipsetSeriesId { get; set; }
     }
 }

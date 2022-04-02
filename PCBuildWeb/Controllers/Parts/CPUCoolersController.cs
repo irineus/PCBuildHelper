@@ -8,12 +8,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class CPUCoolersController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly CPUCoolerService _cpuCoolerService;
 
         public CPUCoolersController(PCBuildWebContext context)
         {
@@ -23,8 +25,8 @@ namespace PCBuildWeb.Controllers.Parts
         // GET: CPUCoolers
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.CPUCooler.Include(c => c.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _cpuCoolerService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: CPUCoolers/Details/5
@@ -35,9 +37,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var cPUCooler = await _context.CPUCooler
-                .Include(c => c.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var cPUCooler = await _cpuCoolerService.FindByIdAsync(id.Value);
             if (cPUCooler == null)
             {
                 return NotFound();
@@ -108,7 +108,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CPUCoolerExists(cPUCooler.Id))
+                    if (!_cpuCoolerService.CPUCoolerExists(cPUCooler.Id))
                     {
                         return NotFound();
                     }
@@ -153,9 +153,6 @@ namespace PCBuildWeb.Controllers.Parts
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CPUCoolerExists(int id)
-        {
-            return _context.CPUCooler.Any(e => e.Id == id);
-        }
+
     }
 }

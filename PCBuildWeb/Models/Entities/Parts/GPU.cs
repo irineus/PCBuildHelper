@@ -20,7 +20,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [ForeignKey("GPUChipsetId")]
         public GPUChipset GPUChipset { get; set; }
         [Display(Name = "GPU Chipset")]
-        public byte GPUChipsetId { get; set; }
+        public int GPUChipsetId { get; set; }
         [Display(Name = "Watercooled?")]
         public bool IsWaterCooled { get; set; }
         [Display(Name = "Ranking Score")]
@@ -74,7 +74,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [ForeignKey("MultiGPUId")]
         public MultiGPU MultiGPU { get; set; }
         [Display(Name = "Multi GPU Type")]
-        public byte MultiGPUId { get; set; }
+        public int MultiGPUId { get; set; }
         [Display(Name = "Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 4.00, ErrorMessage = "{0} should be a value between {1} and {2}")]

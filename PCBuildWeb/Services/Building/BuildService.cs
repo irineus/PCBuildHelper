@@ -4,19 +4,31 @@ using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
 using PCBuildWeb.Utils;
+using Microsoft.EntityFrameworkCore;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Services.Building
 {
     public class BuildService
     {
         public readonly PCBuildWebContext _context;
+        public readonly CPUCoolerService _cpuCoolerService;
+        public readonly CPUService _cpuService;
+        public readonly GPUService _gpuService;
+        public readonly MotherboardService _motherboardService;
 
-        public BuildService(PCBuildWebContext context)
+
+        public BuildService(PCBuildWebContext context, CPUService cpuService, MotherboardService motherboardService, 
+            GPUService gpuService, CPUCoolerService cpuCoolerService)
         {
             _context = context;
+            _cpuService = cpuService;
+            _motherboardService = motherboardService;
+            _gpuService = gpuService;
+            _cpuCoolerService = cpuCoolerService;
         }
 
-        public void BuildNewPC()
+        public async void BuildNewPC()
         {
             Build newBuild = new Build()
             {
@@ -48,19 +60,19 @@ namespace PCBuildWeb.Services.Building
                 switch (component.Type)
                 {
                     case PartType.CPU:
-                        CPU? cpu = FindBestCPU(newBuild, newComponent);
+                        CPU? cpu = await _cpuService.FindBestCPU(newBuild, newComponent);
                         newComponent.BuildPart = cpu;
                         break;
                     case PartType.Motherboard:
-                        Motherboard? mobo = FindBestMotherboard(newBuild, newComponent);
+                        Motherboard? mobo = await _motherboardService.FindBestMotherboard(newBuild, newComponent);
                         newComponent.BuildPart = mobo;
                         break;
                     case PartType.GPU:
-                        GPU? gpu = FindBestGPU(newBuild, newComponent);
+                        GPU? gpu = await _gpuService.FindBestGPU(newBuild, newComponent);
                         newComponent.BuildPart = gpu;
                         break;
                     case PartType.CPUCooler:
-                        CPUCooler? cpuCooler = FindBestCPUCooler(newBuild, newComponent);
+                        CPUCooler? cpuCooler = await _cpuCoolerService.FindBestCPUCooler(newBuild, newComponent);
                         newComponent.BuildPart = cpuCooler;
                         break;
                     case PartType.Memory:
@@ -100,7 +112,7 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Add more memories (considering memory channel count)
-            Component memoryComponent = newBuild.Components.Where(c => c.Type == PartType.Memory).FirstOrDefault();
+            Component? memoryComponent = newBuild.Components.Where(c => c.Type == PartType.Memory).FirstOrDefault();
             if (memoryComponent != null)
             {
                 for (int i = 1; i < newBuild.MemoryChannels; i++)
@@ -119,7 +131,7 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Add more fans (considering free slots)
-            Component fanComponent = newBuild.Components.Where(c => c.Type == PartType.CaseFan).FirstOrDefault();
+            Component? fanComponent = newBuild.Components.Where(c => c.Type == PartType.CaseFan).FirstOrDefault();
             if (fanComponent != null)
             {
                 var freeSlots = CheckFanFreeSlots(newBuild);
@@ -138,129 +150,6 @@ namespace PCBuildWeb.Services.Building
                     //});
                 }
             }
-        }
-
-        //Find best CPU for the build parameters
-        public CPU? FindBestCPU(Build build, Component component)
-        {
-            var bestCPU = _context.CPU
-                            .Where(c => c.Price <= component.BudgetValue)
-                            .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                            .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
-                            .OrderByDescending(c => c.Price);
-
-            // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
-            {
-                if (bestCPU.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
-                {
-                    bestCPU = bestCPU.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
-                }
-            }
-
-            if (build.MemoryChannels > 0)
-            {
-                bestCPU = bestCPU.Where(c => c.MaxMemoryChannels <= build.MemoryChannels).OrderByDescending(c => c.Price);
-            }
-
-            return bestCPU.FirstOrDefault();
-
-        }
-
-        //Find best Motherboard for the build parameters
-        public Motherboard? FindBestMotherboard(Build build, Component component)
-        {
-            var bestMobo = _context.Motherboard
-                            .Where(c => c.Price <= component.BudgetValue)
-                            .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                            .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
-                            .OrderByDescending(c => c.Price);
-
-            // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
-            {
-                if (bestMobo.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
-                {
-                    bestMobo = bestMobo.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
-                }
-            }
-
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault().BuildPart;
-            if (preRequisiteComponent != null)
-            {
-                CPU selectedCPU = (CPU)preRequisiteComponent;
-                bestMobo = bestMobo.Where(m => m.CPUSocketId == selectedCPU.CPUSocketId).OrderByDescending(m => m.Price);
-            }
-            if (build.MemoryChannels > 0)
-            {
-                bestMobo = bestMobo.Where(m => m.RamSlots >= build.MemoryChannels).OrderByDescending(c => c.Price);
-            }
-
-            return bestMobo.FirstOrDefault(); ;
-        }
-
-        //Find best GPU for the build parameters
-        public GPU? FindBestGPU(Build build, Component component)
-        {
-            var bestGPU = _context.GPU
-                            .Where(c => c.Price <= component.BudgetValue)
-                            .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                            .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
-                            .OrderByDescending(c => c.Price);
-
-            // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
-            {
-                if (bestGPU.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
-                {
-                    bestGPU = bestGPU.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
-                }
-            }
-
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.GPU).FirstOrDefault().BuildPart;
-            if (preRequisiteComponent != null)
-            {
-                //Dual GPU: select another identical one
-                GPU selectedGPU = (GPU)preRequisiteComponent;
-                bestGPU = bestGPU.Where(g => g.Id == selectedGPU.Id).OrderByDescending(g => g.Price);
-            }
-
-            return bestGPU.FirstOrDefault(); ;
-        }
-
-        //Find best CPUCooler for the build parameters
-        public CPUCooler? FindBestCPUCooler(Build build, Component component)
-        {
-            var bestCPUCooler = _context.CPUCooler
-                                    .Where(c => c.Price <= component.BudgetValue)
-                                    .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                                    .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
-                                    .OrderByDescending(c => c.Price);
-
-            // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
-            {
-                if (bestCPUCooler.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
-                {
-                    bestCPUCooler = bestCPUCooler.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
-                }
-            }
-
-            // Filter AIO or AirCooler
-            bestCPUCooler = build.MustHaveAIOCooler ?
-                bestCPUCooler.Where(c => c.WaterCooler).OrderByDescending(c => c.Price) :
-                bestCPUCooler.Where(c => c.WaterCooler).OrderByDescending(c => c.AirFlow);
-
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault().BuildPart;
-            if (preRequisiteComponent != null)
-            {
-                CPU selectedCPU = (CPU)preRequisiteComponent;
-                bestCPUCooler = build.MustHaveAIOCooler ?
-                    bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.Price) :
-                    bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.AirFlow);
-            }
-
-            return bestCPUCooler.FirstOrDefault(); ;
         }
 
         //Find best Memory for the build parameters
@@ -286,10 +175,15 @@ namespace PCBuildWeb.Services.Building
                 }
             }
 
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault().BuildPart;
+            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault();
+            ComputerPart? preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                Motherboard selectedMobo = (Motherboard)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                Motherboard selectedMobo = (Motherboard)preRequisiteComputerPart;
                 bestMemory = bestMemory.Where(m => m.Frequency <= selectedMobo.MaxRamSpeed).OrderByDescending(c => c.Price);
             }
 
@@ -314,25 +208,34 @@ namespace PCBuildWeb.Services.Building
                 }
             }
 
-            //If the best storage is a M.2, should match mobo support or else downgrade
-            if (bestStorage.FirstOrDefault().Type == StorageType.M_2)
+            var currentSelectedStorage = bestStorage.FirstOrDefault();
+            if (currentSelectedStorage != null)
             {
-                ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault().BuildPart;
-                if (preRequisiteComponent != null)
+                //If the best storage is a M.2, should match mobo support or else downgrade
+                if (currentSelectedStorage.Type == StorageType.M_2)
                 {
-                    Motherboard selectedMobo = (Motherboard)preRequisiteComponent;
-                    if (selectedMobo.M2Slots == 0)
+                    Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault();
+                    ComputerPart? preRequisiteComputerPart = null;
+                    if (preRequisiteComponent != null)
                     {
-                        // No M.2 support => downgrade type
-                        bestStorage = bestStorage.Where(s => s.Type != StorageType.M_2).OrderByDescending(s => s.Speed);
+                        preRequisiteComputerPart = preRequisiteComponent.BuildPart;
                     }
-                    else
+                    if (preRequisiteComputerPart != null)
                     {
-                        // Mobo supports M.2. Check for heatsink support
-                        if (selectedMobo.M2SlotsSupportingHeatsinks == 0)
+                        Motherboard selectedMobo = (Motherboard)preRequisiteComputerPart;
+                        if (selectedMobo.M2Slots == 0)
                         {
-                            // Remove Heatsinked M.2 from list
-                            bestStorage = bestStorage.Where(s => !s.IncludesHeatsink).OrderByDescending(s => s.Speed);
+                            // No M.2 support => downgrade type
+                            bestStorage = bestStorage.Where(s => s.Type != StorageType.M_2).OrderByDescending(s => s.Speed);
+                        }
+                        else
+                        {
+                            // Mobo supports M.2. Check for heatsink support
+                            if (selectedMobo.M2SlotsSupportingHeatsinks == 0)
+                            {
+                                // Remove Heatsinked M.2 from list
+                                bestStorage = bestStorage.Where(s => !s.IncludesHeatsink).OrderByDescending(s => s.Speed);
+                            }
                         }
                     }
                 }
@@ -361,10 +264,15 @@ namespace PCBuildWeb.Services.Building
 
             // Sum used power from CPU and GPUs in the build
             int neededPower = 0;
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault().BuildPart;
+            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
+            ComputerPart? preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                CPU selectedCPU = (CPU)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                CPU selectedCPU = (CPU)preRequisiteComputerPart;
                 neededPower += selectedCPU.Wattage;
             }
             // Should consider Dual GPU Builds
@@ -399,18 +307,28 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Check mobo size
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault().BuildPart;
+            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault();
+            ComputerPart? preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                Motherboard selectedMobo = (Motherboard)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                Motherboard selectedMobo = (Motherboard)preRequisiteComputerPart;
                 bestCase = bestCase.Where(c => c.SupportedMoboSizes.Contains(selectedMobo.Size)).OrderByDescending(c => c.Price);
             }
 
             // Check CPUCooler specs against case
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPUCooler).FirstOrDefault().BuildPart;
+            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPUCooler).FirstOrDefault();
+            preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                CPUCooler selectedCPUCooler = (CPUCooler)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                CPUCooler selectedCPUCooler = (CPUCooler)preRequisiteComputerPart;
                 if (selectedCPUCooler.WaterCooler)
                 {
                     // Watercooler should check for radiator slots
@@ -429,10 +347,15 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Check WC Radiator specs against case
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.WC_Radiator).FirstOrDefault().BuildPart;
+            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.WC_Radiator).FirstOrDefault();
+            preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                WC_Radiator selectedCPUCooler = (WC_Radiator)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                WC_Radiator selectedCPUCooler = (WC_Radiator)preRequisiteComputerPart;
                 int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
                 if (radiatorFanSize == 120)
                 {
@@ -445,20 +368,30 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Check PSU Length and FormFactor
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.PSU).FirstOrDefault().BuildPart;
+            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.PSU).FirstOrDefault();
+            preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                PSU selectedPSU = (PSU)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                PSU selectedPSU = (PSU)preRequisiteComputerPart;
                 bestCase = bestCase.Where(c => c.SupportedPSUSizes.Contains(selectedPSU.PSUSize))
                     .Where(c => c.MaxPsuLength > selectedPSU.Length)
                     .OrderByDescending(c => c.Price);
             }
 
             // Check GPU Length
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.GPU).FirstOrDefault().BuildPart;
+            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.GPU).FirstOrDefault();
+            preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                GPU selectedGPU = (GPU)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                GPU selectedGPU = (GPU)preRequisiteComputerPart;
                 bestCase = bestCase.Where(c => c.MaxGPULength > selectedGPU.Length).OrderByDescending(c => c.Price);
             }
 
@@ -476,7 +409,7 @@ namespace PCBuildWeb.Services.Building
                 caseFanBudget = component.BudgetValue / (caseFreeSlots.Fan120 + caseFreeSlots.Fan140);
             }
 
-            var bestFanCase = _context.CaseFan
+            var bestCaseFan = _context.CaseFan
                             .Where(c => c.Price <= caseFanBudget)
                             .Where(c => c.LevelUnlock <= build.CurrentLevel)
                             .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
@@ -485,40 +418,44 @@ namespace PCBuildWeb.Services.Building
             // Check for Manufator preference
             if (build.PreferredManufacturer != null)
             {
-                if (bestFanCase.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestCaseFan.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
                 {
-                    bestFanCase = bestFanCase.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
+                    bestCaseFan = bestCaseFan.Where(c => c.Manufacturer == build.PreferredManufacturer).OrderByDescending(c => c.Price);
                 }
             }
 
             if ((caseFreeSlots.Fan120 > 0) && (caseFreeSlots.Fan140 > 0))
             {
                 // Case support for both 120mm and 140mm
-                bestFanCase = bestFanCase.Where(f => (f.Size == 120) || (f.Size == 140)).OrderByDescending(c => c.Price);
+                bestCaseFan = bestCaseFan.Where(f => (f.Size == 120) || (f.Size == 140)).OrderByDescending(c => c.Price);
             }
             else
             {
                 // Case support only for 120mm
                 if (caseFreeSlots.Fan120 > 0)
                 {
-                    bestFanCase = bestFanCase.Where(f => f.Size == 120).OrderByDescending(c => c.Price);
+                    bestCaseFan = bestCaseFan.Where(f => f.Size == 120).OrderByDescending(c => c.Price);
                 }
                 else
                 {
                     // Case support only for 140mm
                     if (caseFreeSlots.Fan140 > 0)
                     {
-                        bestFanCase = bestFanCase.Where(f => f.Size == 120).OrderByDescending(c => c.Price);
+                        bestCaseFan = bestCaseFan.Where(f => f.Size == 120).OrderByDescending(c => c.Price);
                     }
                     else
                     {
                         // No case support for more fans
-                        bestFanCase = null;
+                        bestCaseFan = null;
                     }
                 }
             }
 
-            return bestFanCase.FirstOrDefault();
+            if (bestCaseFan != null)
+            {
+                return bestCaseFan.FirstOrDefault();
+            }
+            return null;
         }
 
         public (int Fan120, int Fan140) CheckFanFreeSlots(Build build)
@@ -527,20 +464,30 @@ namespace PCBuildWeb.Services.Building
             (int Fan120, int Fan140) caseFreeSlots = (0, 0);
             (int Fan120, int Fan140) caseTotalSlots = (0, 0);
             (int Fan120, int Fan140) caseIncludedFans = (0, 0);
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Case).FirstOrDefault().BuildPart;
+            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Case).FirstOrDefault();
+            ComputerPart? preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                Case selectedCase = (Case)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                Case selectedCase = (Case)preRequisiteComputerPart;
                 caseIncludedFans.Fan120 = selectedCase.IncludedCaseFans == null ? 0 : selectedCase.IncludedCaseFans.Where(f => f.Size == 120).Count();
                 caseIncludedFans.Fan140 = selectedCase.IncludedCaseFans == null ? 0 : selectedCase.IncludedCaseFans.Where(f => f.Size == 140).Count();
                 caseTotalSlots = (selectedCase.Number120mmSlots, selectedCase.Number140mmSlots);
                 caseFreeSlots = (caseTotalSlots.Fan120 - caseIncludedFans.Fan120, caseTotalSlots.Fan140 - caseIncludedFans.Fan140);
             }
             // Check if some slots were occuppied by WC radiator
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPUCooler).FirstOrDefault().BuildPart;
+            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPUCooler).FirstOrDefault();
+            preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                CPUCooler selectedCPUCooler = (CPUCooler)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                CPUCooler selectedCPUCooler = (CPUCooler)preRequisiteComputerPart;
                 if (selectedCPUCooler.WaterCooler)
                 {
                     int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
@@ -585,10 +532,15 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Check CPU Socket Type
-            ComputerPart? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault().BuildPart;
+            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
+            ComputerPart? preRequisiteComputerPart = null;
             if (preRequisiteComponent != null)
             {
-                CPU selectedCPU = (CPU)preRequisiteComponent;
+                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+            }
+            if (preRequisiteComputerPart != null)
+            {
+                CPU selectedCPU = (CPU)preRequisiteComputerPart;
                 bestWC_CPU_Block = bestWC_CPU_Block.Where(c => c.SupportedCPUSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.Price);
             }
 

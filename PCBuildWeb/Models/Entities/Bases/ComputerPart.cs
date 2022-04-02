@@ -8,7 +8,7 @@ namespace PCBuildWeb.Models.Entities.Bases
     public abstract class ComputerPart
     {
         [Key]
-        public ushort Id { get; set; }
+        public int Id { get; set; }
         [Display(Name = "Part Name/Model")]
         [Required(ErrorMessage = "{0} is required")]
         [StringLength(256, ErrorMessage = "{0} should have between {2} and {1} characters", MinimumLength = 1)]
@@ -19,7 +19,7 @@ namespace PCBuildWeb.Models.Entities.Bases
         [ForeignKey("ManufacturerId")]
         public Manufacturer Manufacturer { get; set; }
         [Display(Name = "Manufacturer")]
-        public byte ManufacturerId { get; set; }
+        public int ManufacturerId { get; set; }
         [Display(Name = "Buy Price (new)")]
         [Required(ErrorMessage = "{0} is required")]
         [DataType(DataType.Currency)]

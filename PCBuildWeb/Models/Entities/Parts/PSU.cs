@@ -23,6 +23,6 @@ namespace PCBuildWeb.Models.Entities.Parts
         [ForeignKey("PSUSizeId")]
         public PSUSize PSUSize { get; set; }
         [Display(Name = "Form Factor")]
-        public byte PSUSizeId { get; set; }
+        public int PSUSizeId { get; set; }
     }
 }

@@ -16,15 +16,15 @@ namespace PCBuildWeb.Models.Entities.Parts
         [ForeignKey("MoboChipsetId")]
         public MoboChipset MoboChipset { get; set; }
         [Display(Name = "Chipset")]
-        public byte MoboChipsetId { get; set; }
+        public int MoboChipsetId { get; set; }
         [ForeignKey("CPUSocketId")]
         public CPUSocket CPUSocket { get; set; }
         [Display(Name = "Socket")]
-        public byte CPUSocketId { get; set; }
+        public int CPUSocketId { get; set; }
         [ForeignKey("MoboSizeId")]
         public MoboSize Size { get; set; }
         [Display(Name = "Mobo Form Factor")]
-        public byte MoboSizeId { get; set; }
+        public int MoboSizeId { get; set; }
         [Display(Name = "Max Ram Speed")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
@@ -34,7 +34,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Dual GPU Max Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public byte DualGPUMaxSlotSize { get; set; }
+        public int DualGPUMaxSlotSize { get; set; }
         [Display(Name = "Overclockable?")]
         public bool Overclockable { get; set; }
         [Display(Name = "M.2 Slots")]

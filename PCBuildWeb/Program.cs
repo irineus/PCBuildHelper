@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.ViewModels;
 using PCBuildWeb.Services.Building;
+using PCBuildWeb.Services.Entities.Parts;
 using PCBuildWeb.Services.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,10 @@ builder.Services.AddDbContext<PCBuildWebContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<BuildService>();
+builder.Services.AddScoped<CPUCoolerService>();
+builder.Services.AddScoped<CPUService>();
+builder.Services.AddScoped<GPUService>();
+builder.Services.AddScoped<MotherboardService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

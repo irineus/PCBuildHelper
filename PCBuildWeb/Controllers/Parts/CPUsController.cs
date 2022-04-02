@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class CPUsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly CPUService _cpuService;
 
-        public CPUsController(PCBuildWebContext context)
+        public CPUsController(PCBuildWebContext context, CPUService cpuService)
         {
             _context = context;
+            _cpuService = cpuService;
         }
 
         // GET: CPUs
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.CPU.Include(c => c.CPUSocket).Include(c => c.Manufacturer).Include(c => c.Series);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _cpuService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: CPUs/Details/5
@@ -35,11 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var cPU = await _context.CPU
-                .Include(c => c.CPUSocket)
-                .Include(c => c.Manufacturer)
-                .Include(c => c.Series)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var cPU = await _cpuService.FindByIdAsync(id.Value);
             if (cPU == null)
             {
                 return NotFound();
@@ -116,7 +115,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CPUExists(cPU.Id))
+                    if (!_cpuService.CPUExists(cPU.Id))
                     {
                         return NotFound();
                     }
@@ -165,9 +164,5 @@ namespace PCBuildWeb.Controllers.Parts
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CPUExists(int id)
-        {
-            return _context.CPU.Any(e => e.Id == id);
-        }
     }
 }
