@@ -11,7 +11,8 @@ namespace PCBuildWeb.Models.ViewModels
             return new[]
             {
                 "/Views/Parts/{1}/{0}.cshtml",
-                "/Views/Properties/{1}/{0}.cshtml"
+                "/Views/Properties/{1}/{0}.cshtml",
+                "/Views/Building/{1}/{0}.cshtml"
             }.Union(viewLocations);
         }
     }

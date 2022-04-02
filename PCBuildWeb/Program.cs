@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.ViewModels;
+using PCBuildWeb.Services.Building;
 using PCBuildWeb.Services.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,8 @@ builder.Services.AddDbContext<PCBuildWebContext>(options =>
         ServerVersion.AutoDetect(connectionString),
         builder => builder.MigrationsAssembly("PCBuildWeb")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddScoped<BuildService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

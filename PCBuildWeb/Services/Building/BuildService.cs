@@ -31,6 +31,7 @@ namespace PCBuildWeb.Services.Building
 
             //Select build type
             newBuild.BuildType = new BuildType(TypeEnum.Usual);
+            newBuild.Components = new List<Component>();
 
             // Search the best coponent for the build (order by priority to build acordely)
             foreach (var component in newBuild.BuildType.BuildPartSpecs.OrderBy(b => b.Priority))
@@ -188,7 +189,7 @@ namespace PCBuildWeb.Services.Building
             if (preRequisiteComponent != null)
             {
                 CPU selectedCPU = (CPU)preRequisiteComponent;
-                bestMobo = bestMobo.Where(m => m.CPUSocket == selectedCPU.CPUSocket).OrderByDescending(c => c.Price);
+                bestMobo = bestMobo.Where(m => m.CPUSocketId == selectedCPU.CPUSocketId).OrderByDescending(m => m.Price);
             }
             if (build.MemoryChannels > 0)
             {

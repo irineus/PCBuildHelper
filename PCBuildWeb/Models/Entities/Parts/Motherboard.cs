@@ -12,28 +12,29 @@ namespace PCBuildWeb.Models.Entities.Parts
         {
             this.MultiGPUSupport = new HashSet<MultiGPU>();
         }
+        
         [ForeignKey("MoboChipsetId")]
         public MoboChipset MoboChipset { get; set; }
         [Display(Name = "Chipset")]
-        public int MoboChipsetId { get; set; }
+        public byte MoboChipsetId { get; set; }
         [ForeignKey("CPUSocketId")]
         public CPUSocket CPUSocket { get; set; }
         [Display(Name = "Socket")]
-        public int CPUSocketId { get; set; }
+        public byte CPUSocketId { get; set; }
         [ForeignKey("MoboSizeId")]
         public MoboSize Size { get; set; }
         [Display(Name = "Mobo Form Factor")]
-        public int MoboSizeId { get; set; }
+        public byte MoboSizeId { get; set; }
         [Display(Name = "Max Ram Speed")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int MaxRamSpeed { get; set; }
         [Display(Name = "Multi GPU Support")]
-        public virtual ICollection<MultiGPU>? MultiGPUSupport { get; set; }
+        public virtual ICollection<MultiGPU> MultiGPUSupport { get; set; }
         [Display(Name = "Dual GPU Max Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int? DualGPUMaxSlotSize { get; set; }
+        public byte DualGPUMaxSlotSize { get; set; }
         [Display(Name = "Overclockable?")]
         public bool Overclockable { get; set; }
         [Display(Name = "M.2 Slots")]

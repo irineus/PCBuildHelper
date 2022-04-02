@@ -11,7 +11,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         public CPUSeries Series { get; set; }
         [Display(Name = "CPU Series")]
         [Required(ErrorMessage = "{0} is required")]
-        public int SeriesId { get; set; }
+        public byte SeriesId { get; set; }
         [Display(Name = "Ranking Score")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 99999, ErrorMessage = "{0} should be a value between {1} and {2}")]
@@ -28,7 +28,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         public CPUSocket CPUSocket { get; set; }
         [Display(Name = "CPU Socket Type")]
         [Required(ErrorMessage = "{0} is required")]
-        public int CPUSocketId { get; set; }
+        public byte CPUSocketId { get; set; }
         [Display(Name = "CPU TDP (Watts)")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 1000, ErrorMessage = "{0} should be a value between {1} and {2}")]
