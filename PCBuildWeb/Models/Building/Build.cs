@@ -26,7 +26,7 @@ namespace PCBuildWeb.Models.Building
         [ForeignKey("ManufacturerId")]
         public Manufacturer? PreferredManufacturer { get; set; }
         [Display(Name = "Preferred Manufacturer")]
-        public int ManufacturerId { get; set; }
+        public int? ManufacturerId { get; set; }
         [Display(Name = "Target Score")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 100000, ErrorMessage = "{0} should be a value between {1} and {2}")]

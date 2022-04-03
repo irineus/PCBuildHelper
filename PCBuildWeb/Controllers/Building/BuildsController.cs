@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PCBuildWeb.Data;
+using PCBuildWeb.Models.Building;
 using PCBuildWeb.Services.Building;
 
 namespace PCBuildWeb.Controllers.Building
@@ -19,6 +21,7 @@ namespace PCBuildWeb.Controllers.Building
         public async Task<IActionResult> Index()
         {
             //await _buildService.BuildNewPC();
+            ViewData["ManufacturerId"] = new SelectList(_context.Manufacturer, "Id", "Name");
             return View();
         }
     }

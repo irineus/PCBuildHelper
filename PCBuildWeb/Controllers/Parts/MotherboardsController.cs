@@ -62,7 +62,7 @@ namespace PCBuildWeb.Controllers.Parts
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MoboChipsetId,CPUSocketId,MoboSizeId,MaxRamSpeed,DualGPUMaxSlotSize,Overclockable,M2Slots,M2SlotsSupportingHeatsinks,RamSlots,SATASlots,IncludesCPUBlock,DefaultRamSpeed,Id,Name,PartType,ManufacturerId,Price,SellPrice,LevelUnlock,LevelPercent,Lighting")] Motherboard motherboard)
+        public async Task<IActionResult> Create([Bind("MoboChipsetId,CPUSocketId,MoboSizeId,MaxRamSpeed,MultiGPUSupportId,DualGPUMaxSlotSize,Overclockable,M2Slots,M2SlotsSupportingHeatsinks,RamSlots,SATASlots,IncludesCPUBlock,DefaultRamSpeed,MinRamSpeed,Id,Name,PartType,ManufacturerId,Price,SellPrice,LevelUnlock,LevelPercent,Lighting")] Motherboard motherboard)
         {
             if (ModelState.IsValid)
             {
@@ -102,7 +102,7 @@ namespace PCBuildWeb.Controllers.Parts
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MoboChipsetId,CPUSocketId,MoboSizeId,MaxRamSpeed,DualGPUMaxSlotSize,Overclockable,M2Slots,M2SlotsSupportingHeatsinks,RamSlots,SATASlots,IncludesCPUBlock,DefaultRamSpeed,Id,Name,PartType,ManufacturerId,Price,SellPrice,LevelUnlock,LevelPercent,Lighting")] Motherboard motherboard)
+        public async Task<IActionResult> Edit(int id, [Bind("MoboChipsetId,CPUSocketId,MoboSizeId,MaxRamSpeed,MultiGPUSupportId,DualGPUMaxSlotSize,Overclockable,M2Slots,M2SlotsSupportingHeatsinks,RamSlots,SATASlots,IncludesCPUBlock,DefaultRamSpeed,MinRamSpeed,Id,Name,PartType,ManufacturerId,Price,SellPrice,LevelUnlock,LevelPercent,Lighting")] Motherboard motherboard)
         {
             if (id != motherboard.Id)
             {
@@ -118,7 +118,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_motherboardService.MotherboardExists(motherboard.Id))
+                    if (!MotherboardExists(motherboard.Id))
                     {
                         return NotFound();
                     }
@@ -167,6 +167,11 @@ namespace PCBuildWeb.Controllers.Parts
             _context.Motherboard.Remove(motherboard);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private bool MotherboardExists(int id)
+        {
+            return _context.Motherboard.Any(e => e.Id == id);
         }
     }
 }
