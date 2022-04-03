@@ -17,7 +17,6 @@ namespace PCBuildWeb.Services.Building
         public readonly GPUService _gpuService;
         public readonly MotherboardService _motherboardService;
 
-
         public BuildService(PCBuildWebContext context, CPUService cpuService, MotherboardService motherboardService, 
             GPUService gpuService, CPUCoolerService cpuCoolerService)
         {
