@@ -27,7 +27,7 @@ namespace PCBuildWeb.Services.Building
             _cpuCoolerService = cpuCoolerService;
         }
 
-        public async void BuildNewPC()
+        public async Task BuildNewPC()
         {
             Build newBuild = new Build()
             {
