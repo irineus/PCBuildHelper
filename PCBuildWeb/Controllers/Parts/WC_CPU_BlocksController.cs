@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class WC_CPU_BlocksController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly WC_CPU_BlockService _wcCPUBlockService;
 
-        public WC_CPU_BlocksController(PCBuildWebContext context)
+        public WC_CPU_BlocksController(PCBuildWebContext context, WC_CPU_BlockService wcCPUBlockService)
         {
             _context = context;
+            _wcCPUBlockService = wcCPUBlockService;
         }
 
         // GET: WC_CPU_Blocks
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.WC_CPU_Block.Include(w => w.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _wcCPUBlockService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: WC_CPU_Blocks/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var wC_CPU_Block = await _context.WC_CPU_Block
-                .Include(w => w.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var wC_CPU_Block = await _wcCPUBlockService.FindByIdAsync(id.Value);
             if (wC_CPU_Block == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WC_CPU_BlockExists(wC_CPU_Block.Id))
+                    if (!_wcCPUBlockService.WC_CPU_BlockExists(wC_CPU_Block.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.WC_CPU_Block.Remove(wC_CPU_Block);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool WC_CPU_BlockExists(int id)
-        {
-            return _context.WC_CPU_Block.Any(e => e.Id == id);
         }
     }
 }

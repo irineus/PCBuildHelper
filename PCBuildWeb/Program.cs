@@ -34,10 +34,18 @@ builder.Services.AddDbContext<PCBuildWebContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<BuildService>();
+builder.Services.AddScoped<CaseFanService>();
+builder.Services.AddScoped<CaseService>();
 builder.Services.AddScoped<CPUCoolerService>();
 builder.Services.AddScoped<CPUService>();
 builder.Services.AddScoped<GPUService>();
+builder.Services.AddScoped<MemoryService>();
 builder.Services.AddScoped<MotherboardService>();
+builder.Services.AddScoped<PSUService>();
+builder.Services.AddScoped<StorageService>();
+builder.Services.AddScoped<WC_CPU_BlockService>();
+builder.Services.AddScoped<WC_RadiatorService>();
+builder.Services.AddScoped<WC_ReservoirService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

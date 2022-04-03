@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class WC_ReservoirsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly WC_ReservoirService _wcReservoirService;
 
-        public WC_ReservoirsController(PCBuildWebContext context)
+        public WC_ReservoirsController(PCBuildWebContext context, WC_ReservoirService wcReservoirService)
         {
             _context = context;
+            _wcReservoirService = wcReservoirService;
         }
 
         // GET: WC_Reservoirs
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.WC_Reservoir.Include(w => w.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _wcReservoirService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: WC_Reservoirs/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var wC_Reservoir = await _context.WC_Reservoir
-                .Include(w => w.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var wC_Reservoir = await _wcReservoirService.FindByIdAsync(id.Value);
             if (wC_Reservoir == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WC_ReservoirExists(wC_Reservoir.Id))
+                    if (!_wcReservoirService.WC_ReservoirExists(wC_Reservoir.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.WC_Reservoir.Remove(wC_Reservoir);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool WC_ReservoirExists(int id)
-        {
-            return _context.WC_Reservoir.Any(e => e.Id == id);
-        }
+        }        
     }
 }

@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class CaseFansController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly CaseFanService _caseFanService;
 
-        public CaseFansController(PCBuildWebContext context)
+        public CaseFansController(PCBuildWebContext context, CaseFanService caseFanService)
         {
             _context = context;
+            _caseFanService = caseFanService;
         }
 
         // GET: CaseFans
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.CaseFan.Include(c => c.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _caseFanService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: CaseFans/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var caseFan = await _context.CaseFan
-                .Include(c => c.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var caseFan = await _caseFanService.FindByIdAsync(id.Value);
             if (caseFan == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CaseFanExists(caseFan.Id))
+                    if (!_caseFanService.CaseFanExists(caseFan.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.CaseFan.Remove(caseFan);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CaseFanExists(int id)
-        {
-            return _context.CaseFan.Any(e => e.Id == id);
         }
     }
 }

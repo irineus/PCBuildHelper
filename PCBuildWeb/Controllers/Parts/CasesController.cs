@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class CasesController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly CaseService _caseService;
 
-        public CasesController(PCBuildWebContext context)
+        public CasesController(PCBuildWebContext context, CaseService caseService)
         {
             _context = context;
+            _caseService = caseService;
         }
 
         // GET: Cases
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.Case.Include(c => c.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _caseService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: Cases/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var @case = await _context.Case
-                .Include(c => c.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var @case = await _caseService.FindByIdAsync(id.Value);
             if (@case == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CaseExists(@case.Id))
+                    if (!_caseService.CaseExists(@case.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.Case.Remove(@case);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CaseExists(int id)
-        {
-            return _context.Case.Any(e => e.Id == id);
-        }
+        }        
     }
 }

@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class WC_RadiatorsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly WC_RadiatorService _wcRadiatorService;
 
-        public WC_RadiatorsController(PCBuildWebContext context)
+        public WC_RadiatorsController(PCBuildWebContext context, WC_RadiatorService wcRadiatorService)
         {
             _context = context;
+            _wcRadiatorService = wcRadiatorService;
         }
 
         // GET: WC_Radiators
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.WC_Radiator.Include(w => w.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _wcRadiatorService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: WC_Radiators/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var wC_Radiator = await _context.WC_Radiator
-                .Include(w => w.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var wC_Radiator = await _wcRadiatorService.FindByIdAsync(id.Value);
             if (wC_Radiator == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WC_RadiatorExists(wC_Radiator.Id))
+                    if (!_wcRadiatorService.WC_RadiatorExists(wC_Radiator.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.WC_Radiator.Remove(wC_Radiator);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool WC_RadiatorExists(int id)
-        {
-            return _context.WC_Radiator.Any(e => e.Id == id);
         }
     }
 }

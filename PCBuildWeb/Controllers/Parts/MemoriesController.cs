@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class MemoriesController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly MemoryService _memoryService;
 
-        public MemoriesController(PCBuildWebContext context)
+        public MemoriesController(PCBuildWebContext context, MemoryService memoryService)
         {
             _context = context;
+            _memoryService = memoryService;
         }
 
         // GET: Memories
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.Memory.Include(m => m.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _memoryService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: Memories/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var memory = await _context.Memory
-                .Include(m => m.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var memory = await _memoryService.FindByIdAsync(id.Value);
             if (memory == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MemoryExists(memory.Id))
+                    if (!_memoryService.MemoryExists(memory.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.Memory.Remove(memory);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool MemoryExists(int id)
-        {
-            return _context.Memory.Any(e => e.Id == id);
         }
     }
 }

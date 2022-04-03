@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class PSUsController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly PSUService _psuService;
 
-        public PSUsController(PCBuildWebContext context)
+        public PSUsController(PCBuildWebContext context, PSUService psuService)
         {
             _context = context;
+            _psuService = psuService;
         }
 
         // GET: PSUs
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.PSU.Include(p => p.Manufacturer).Include(p => p.PSUSize);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _psuService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: PSUs/Details/5
@@ -35,10 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var pSU = await _context.PSU
-                .Include(p => p.Manufacturer)
-                .Include(p => p.PSUSize)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var pSU = await _psuService.FindByIdAsync(id.Value);
             if (pSU == null)
             {
                 return NotFound();
@@ -112,7 +112,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PSUExists(pSU.Id))
+                    if (!_psuService.PSUExists(pSU.Id))
                     {
                         return NotFound();
                     }
@@ -157,11 +157,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.PSU.Remove(pSU);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool PSUExists(int id)
-        {
-            return _context.PSU.Any(e => e.Id == id);
         }
     }
 }

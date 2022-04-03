@@ -7,38 +7,38 @@ using PCBuildWeb.Models.Enums;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class CPUCoolerService
+    public class WC_CPU_BlockService
     {
         private readonly PCBuildWebContext _context;
         private readonly CPUService _cpuService;
 
-        public CPUCoolerService(PCBuildWebContext context, CPUService cpuService)
+        public WC_CPU_BlockService(PCBuildWebContext context, CPUService cpuService)
         {
             _context = context;
             _cpuService = cpuService;
         }
 
-        public async Task<List<CPUCooler>> FindAllAsync()
+        public async Task<List<WC_CPU_Block>> FindAllAsync()
         {
-            return await _context.CPUCooler
-                .Include(c => c.Manufacturer)
-                .Include(c => c.CompatibleSockets)
+            return await _context.WC_CPU_Block
+                .Include(w => w.Manufacturer)
+                .Include(w => w.SupportedCPUSockets)
                 .ToListAsync();
         }
 
-        public async Task<CPUCooler?> FindByIdAsync(int id)
+        public async Task<WC_CPU_Block?> FindByIdAsync(int id)
         {
-            return await _context.CPUCooler
-                .Include(c => c.Manufacturer)
-                .Include(c => c.CompatibleSockets)
+            return await _context.WC_CPU_Block
+                .Include(w => w.Manufacturer)
+                .Include(w => w.SupportedCPUSockets)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        //Find best CPUCooler for the build parameters
-        public async Task<CPUCooler?> FindBestCPUCooler(Build build, Component component)
+        // Find best Custom WaterCooler CPU Block for the build
+        public async Task<WC_CPU_Block?> FindBestWCCPUBlock(Build build, Component component)
         {
-            List<CPUCooler> bestCPUCooler = await FindAllAsync();
-            bestCPUCooler = bestCPUCooler
+            List<WC_CPU_Block> bestWC_CPU_Block = await FindAllAsync();
+            bestWC_CPU_Block = bestWC_CPU_Block
                 .Where(c => c.Price <= component.BudgetValue)
                 .Where(c => c.LevelUnlock <= build.CurrentLevel)
                 .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
@@ -48,20 +48,16 @@ namespace PCBuildWeb.Services.Entities.Parts
             // Check for Manufator preference
             if (build.PreferredManufacturer != null)
             {
-                if (bestCPUCooler.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestWC_CPU_Block.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
                 {
-                    bestCPUCooler = bestCPUCooler
+                    bestWC_CPU_Block = bestWC_CPU_Block
                         .Where(c => c.Manufacturer == build.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
-            // Filter AIO or AirCooler
-            bestCPUCooler = build.MustHaveAIOCooler ?
-                bestCPUCooler.Where(c => c.WaterCooler).OrderByDescending(c => c.Price).ToList() :
-                bestCPUCooler.Where(c => !c.WaterCooler).OrderByDescending(c => c.AirFlow).ToList();
-
+            // Check CPU Socket Type
             Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
             if (preRequisiteComponent != null)
             {
@@ -72,19 +68,20 @@ namespace PCBuildWeb.Services.Entities.Parts
                     CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
                     if (selectedCPU != null)
                     {
-                        bestCPUCooler = build.MustHaveAIOCooler ?
-                            bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.Price).ToList() :
-                            bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.AirFlow).ToList();
+                        bestWC_CPU_Block = bestWC_CPU_Block
+                            .Where(c => c.SupportedCPUSockets.Contains(selectedCPU.CPUSocket))
+                            .OrderByDescending(c => c.Price)
+                            .ToList();
                     }
                 }
             }
 
-            return bestCPUCooler.FirstOrDefault();
+            return bestWC_CPU_Block.FirstOrDefault();
         }
 
-        public bool CPUCoolerExists(int id)
+        public bool WC_CPU_BlockExists(int id)
         {
-            return _context.CPUCooler.Any(e => e.Id == id);
+            return _context.WC_CPU_Block.Any(e => e.Id == id);
         }
     }
 }

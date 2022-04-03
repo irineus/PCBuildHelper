@@ -8,23 +8,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Services.Entities.Parts;
 
 namespace PCBuildWeb.Controllers.Parts
 {
     public class StoragesController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly StorageService _storageService;
 
-        public StoragesController(PCBuildWebContext context)
+        public StoragesController(PCBuildWebContext context, StorageService storageService)
         {
             _context = context;
+            _storageService = storageService;
         }
 
         // GET: Storages
         public async Task<IActionResult> Index()
         {
-            var pCBuildWebContext = _context.Storage.Include(s => s.Manufacturer);
-            return View(await pCBuildWebContext.ToListAsync());
+            var pCBuildWebContext = await _storageService.FindAllAsync();
+            return View(pCBuildWebContext);
         }
 
         // GET: Storages/Details/5
@@ -35,9 +38,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var storage = await _context.Storage
-                .Include(s => s.Manufacturer)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var storage = await _storageService.FindByIdAsync(id.Value);
             if (storage == null)
             {
                 return NotFound();
@@ -108,7 +109,7 @@ namespace PCBuildWeb.Controllers.Parts
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StorageExists(storage.Id))
+                    if (!_storageService.StorageExists(storage.Id))
                     {
                         return NotFound();
                     }
@@ -151,11 +152,6 @@ namespace PCBuildWeb.Controllers.Parts
             _context.Storage.Remove(storage);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool StorageExists(int id)
-        {
-            return _context.Storage.Any(e => e.Id == id);
-        }
+        }      
     }
 }

@@ -66,11 +66,14 @@ namespace PCBuildWeb.Services.Entities.Parts
                 preRequisiteComputerPart = preRequisiteComponent.BuildPart;
                 if (preRequisiteComputerPart != null)
                 {
-                    CPU selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    bestMobo = bestMobo
-                        .Where(m => m.CPUSocket == selectedCPU.CPUSocket)
-                        .OrderByDescending(m => m.Price)
-                        .ToList();
+                    CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                    if (selectedCPU != null)
+                    {
+                        bestMobo = bestMobo
+                            .Where(m => m.CPUSocket == selectedCPU.CPUSocket)
+                            .OrderByDescending(m => m.Price)
+                            .ToList();
+                    }
                 }
             }
             if (build.MemoryChannels > 0)
