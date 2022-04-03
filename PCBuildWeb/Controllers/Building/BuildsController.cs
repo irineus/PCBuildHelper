@@ -18,7 +18,7 @@ namespace PCBuildWeb.Controllers.Building
 
         public async Task<IActionResult> Index()
         {
-            await _buildService.BuildNewPC();
+            //await _buildService.BuildNewPC();
             return View();
         }
     }
