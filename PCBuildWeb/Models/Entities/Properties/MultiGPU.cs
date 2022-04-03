@@ -7,9 +7,10 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public MultiGPU()
         {
-            this.UsedInThisMobos = new HashSet<Motherboard>();
+            //this.UsedInThisMobos = new HashSet<Motherboard>();
         }
 
-        public virtual ICollection<Motherboard> UsedInThisMobos { get; set; }
+        public List<Motherboard> Motherboards { get; } = new List<Motherboard>();
+        public List<GPU> GPUs { get; } = new List<GPU>();
     }
 }

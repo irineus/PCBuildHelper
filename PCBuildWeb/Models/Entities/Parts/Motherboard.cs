@@ -29,10 +29,8 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int MaxRamSpeed { get; set; }
-        [ForeignKey("MultiGPUSupportId")]
-        public ICollection<MultiGPU>? MultiGPUSupport { get; set; }
         [Display(Name = "Multi GPU Support")]
-        public int? MultiGPUSupportId { get; set; }
+        public List<MultiGPU> MultiGPUSupport { get; } = new List<MultiGPU>();
         [Display(Name = "Dual GPU Max Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]

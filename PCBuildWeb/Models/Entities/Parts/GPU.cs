@@ -72,9 +72,9 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(10, 1000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int Wattage { get; set; }
         [ForeignKey("MultiGPUId")]
-        public MultiGPU MultiGPU { get; set; }
+        public MultiGPU? MultiGPU { get; set; }
         [Display(Name = "Multi GPU Type")]
-        public int MultiGPUId { get; set; }
+        public int? MultiGPUId { get; set; }
         [Display(Name = "Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 4.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
