@@ -10,9 +10,6 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public Case()
         {
-            this.SupportedMoboSizes = new HashSet<MoboSize>();
-            this.SupportedPSUSizes = new HashSet<PSUSize>();
-            this.IncludedCaseFans = new HashSet<CaseFan>();
         }
 
         [Display(Name = "Case Size")]
@@ -21,10 +18,10 @@ namespace PCBuildWeb.Models.Entities.Parts
         public CaseSize CaseSize { get; set; }
         [Display(Name = "List of Supported Mobo Sizes")]
         [Required(ErrorMessage = "{0} is required")]
-        public virtual ICollection<MoboSize> SupportedMoboSizes { get; set; }
+        public List<MoboSize> MoboSizes { get; set; } = new List<MoboSize>();
         [Display(Name = "List of Supported PSU Sizes")]
         [Required(ErrorMessage = "{0} is required")]
-        public virtual ICollection<PSUSize> SupportedPSUSizes { get; set; }
+        public List<PSUSize> PSUSizes { get; set; } = new List<PSUSize>();
         [Display(Name = "Number of 120mm Slots")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(0, 20, ErrorMessage = "{0} should be a value between {1} and {2}")]
@@ -52,7 +49,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         public bool IsOpenBench { get; set; }
         [Display(Name = "List of Included Fans")]
-        public virtual ICollection<CaseFan>? IncludedCaseFans { get; set; }
+        public List<CaseFan> CaseFans { get; set; } = new List<CaseFan>();
         [Display(Name = "Restricted GPU Length")]
         public int? RestrictedGpuLength { get; set; }
         [Display(Name = "Restricted GPU Length")]

@@ -1,8 +1,101 @@
 ﻿@model PCBuildWeb.Models.Building.Build
+@using PCBuildWeb.Models.Enums
+@using PCBuildWeb.Models.Building
+@using PCBuildWeb.Models.Entities.Parts
 
 @{
-    ViewData["Title"] = "Building Result";
+    ViewData["Title"] = "Build Result";
 }
 
 <h2>@ViewData["Title"]</h2>
 <hr />
+<div class="row">
+    <div class="col-lg-4">
+        <h5>Build Costs:</h5>
+        <p class="text-success">Total value: $@Model.Components.Sum(c => c.BuildPart!.Price)</p>
+        <p class="text-success">Spare Budget: $@(Model.Parameter.Budget-Model.Components.Sum(c => c.BuildPart!.Price))</p>
+    </div>
+    <div class="col-lg-4">
+        @{
+            int totalBasicScore = 0;
+            int totalOCScore = 0;
+            int totalRankingScore = 0;
+            @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.CPU ||
+        c.BuildPart.PartType == PartType.GPU).ToList())
+            {
+                switch (component.BuildPart.PartType)
+                {
+                    case PartType.CPU:
+                        CPU cpuComponent = (CPU)component.BuildPart;
+                        totalBasicScore += cpuComponent.BasicCPUScore;
+                        totalOCScore += cpuComponent.OverclockedCPUScore;
+                        totalRankingScore += cpuComponent.RankingScore;
+                        break;
+                    case PartType.GPU:
+                        GPU gpuComponent = (GPU)component.BuildPart;
+                        totalBasicScore += gpuComponent.SingleGPUScore;
+                        totalOCScore += gpuComponent.OverclockedSingleGPUScore ?? 0;
+                        totalRankingScore += gpuComponent.RankingScore;
+                        break;
+                }
+            }
+        }
+        <h5>Build Scores:</h5>
+        <p class="text-success">Basic Score: @totalBasicScore</p>
+        <p class="text-success">Overclocked Score: @totalOCScore</p>
+        <p class="text-success">Ranking Score: @totalRankingScore</p>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-lg-4">
+        <h4>Main Parts</h4>
+        @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.CPU ||
+        c.BuildPart.PartType == PartType.Motherboard ||
+        c.BuildPart.PartType == PartType.GPU ||
+        c.BuildPart.PartType == PartType.Memory).ToList())
+        {
+            <div class="card text-white bg-success mb-3" style="max-width: 20rem;">
+                <div class="card-header">@component.BuildPart!.PartType</div>
+                <div class="card-body">
+                    <h6 class="card-title">@string.Concat(component.BuildPart.Manufacturer.Name," - ",component.BuildPart.Name)</h6>
+                    <p class="card-text">Price: $@component.BuildPart.Price</p>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-lg-4">
+        <h4>Secondary Parts</h4>
+        @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.CPUCooler ||
+        c.BuildPart.PartType == PartType.PSU ||
+        c.BuildPart.PartType == PartType.Storage ||
+        c.BuildPart.PartType == PartType.WC_CPU_Block ||
+        c.BuildPart.PartType == PartType.WC_Radiator ||
+        c.BuildPart.PartType == PartType.WC_Reservoir).ToList())
+        {
+            <div class="card text-white bg-info mb-3" style="max-width: 20rem;">
+                <div class="card-header">@component.BuildPart!.PartType</div>
+                <div class="card-body">
+                    <h6 class="card-title">@string.Concat(component.BuildPart.Manufacturer.Name," - ",component.BuildPart.Name)</h6>
+                    <p class="card-text">Price: $@component.BuildPart.Price</p>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-lg-4">
+        <h4>Other Parts</h4>
+        @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.Case ||
+        c.BuildPart.PartType == PartType.CaseFan).ToList())
+        {
+            <div class="card text-white bg-dark mb-3" style="max-width: 20rem;">
+                <div class="card-header">@component.BuildPart!.PartType</div>
+                <div class="card-body">
+                    <h6 class="card-title">@string.Concat(component.BuildPart.Manufacturer.Name," - ",component.BuildPart.Name)</h6>
+                    <p class="card-text">Price: $@component.BuildPart.Price</p>
+                </div>
+            </div>
+        }
+    </div>
+    <hr />
+    <p><a href="@Url.Action("Build", "Builds")" class="btn btn-primary btn-lg">New Build</a></p>
+</div>

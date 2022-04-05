@@ -36,18 +36,18 @@ namespace PCBuildWeb.Services.Entities.Parts
             var bestWC_Reservoir = await FindAllAsync();
             bestWC_Reservoir = bestWC_Reservoir
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestWC_Reservoir.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestWC_Reservoir.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestWC_Reservoir = bestWC_Reservoir
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }

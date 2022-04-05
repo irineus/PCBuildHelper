@@ -8,7 +8,6 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public CPUCooler()
         {
-            this.CompatibleSockets = new HashSet<CPUSocket>();
         }
 
         [Display(Name="Is a Watercooler (AIO)?")]
@@ -19,7 +18,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 999.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double AirFlow { get; set; }
-        public virtual ICollection<CPUSocket> CompatibleSockets { get; set; }
+        public List<CPUSocket> CPUSockets { get; set; } = new List<CPUSocket>();
         [Display(Name = "Cooler Height")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 999, ErrorMessage = "{0} should be a value between {1} and {2}")]

@@ -7,7 +7,6 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public CaseFan()
         {
-            this.IncludedInThisCases = new HashSet<Case>();
         }
 
         [Display(Name = "Air Flow")]
@@ -21,6 +20,6 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Air Pressure")]
         [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double? AirPressure { get; set; }
-        public virtual ICollection<Case> IncludedInThisCases { get; set; }
+        public List<Case> Cases { get; set; } = new List<Case>();
     }
 }

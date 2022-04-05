@@ -25,6 +25,7 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .Include(m => m.Manufacturer)
                 .Include(m => m.MoboChipset)
                 .Include(m => m.Size)
+                .Include(m => m.MultiGPUs)
                 .ToListAsync();
         }
 
@@ -35,6 +36,7 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .Include(m => m.Manufacturer)
                 .Include(m => m.MoboChipset)
                 .Include(m => m.Size)
+                .Include(m => m.MultiGPUs)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -43,43 +45,48 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             List<Motherboard> bestMobo = await FindAllAsync();
             bestMobo = bestMobo.Where(c => c.Price <= component.BudgetValue)
-                            .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                            .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                            .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                            .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                             .OrderByDescending(c => c.Price).ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestMobo.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestMobo.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestMobo = bestMobo
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
-            if (preRequisiteComponent != null)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCPU != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        bestMobo = bestMobo
-                            .Where(m => m.CPUSocket == selectedCPU.CPUSocket)
-                            .OrderByDescending(m => m.Price)
-                            .ToList();
+                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCPU != null)
+                        {
+                            bestMobo = bestMobo
+                                .Where(m => m.CPUSocket == selectedCPU.CPUSocket)
+                                .OrderByDescending(m => m.Price)
+                                .ToList();
+                        }
                     }
                 }
             }
-            if (build.MemoryChannels > 0)
+            if (build.Parameter.MemoryChannels > 0)
             {
                 bestMobo = bestMobo
-                    .Where(m => m.RamSlots >= build.MemoryChannels)
+                    .Where(m => m.RamSlots >= build.Parameter.MemoryChannels)
                     .OrderByDescending(c => c.Price)
                     .ToList();
             }

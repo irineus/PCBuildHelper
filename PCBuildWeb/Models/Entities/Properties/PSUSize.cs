@@ -7,9 +7,9 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public PSUSize()
         {
-            this.SupportedCases = new HashSet<Case>();
+            //this.SupportedCases = new HashSet<Case>();
         }
-
-        public virtual ICollection<Case> SupportedCases { get; set; }
+        
+        public List<Case> Cases { get; set; } = new List<Case>();
     }
 }

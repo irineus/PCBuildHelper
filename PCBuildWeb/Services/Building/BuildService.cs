@@ -1,11 +1,10 @@
-﻿using PCBuildWeb.Data;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using PCBuildWeb.Data;
 using PCBuildWeb.Models.Building;
-using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
-using PCBuildWeb.Utils;
-using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Services.Entities.Parts;
+using PCBuildWeb.Services.Entities.Properties;
 
 namespace PCBuildWeb.Services.Building
 {
@@ -24,11 +23,13 @@ namespace PCBuildWeb.Services.Building
         public readonly WC_CPU_BlockService _wcCpuBlockService;
         public readonly WC_RadiatorService _wcRadiatorService;
         public readonly WC_ReservoirService _wcReservoirService;
+        public readonly ManufacturerService _manufacturerService;
 
         public BuildService(PCBuildWebContext context, CPUService cpuService, MotherboardService motherboardService,
             GPUService gpuService, CPUCoolerService cpuCoolerService, MemoryService memoryService, PSUService psuService,
             StorageService storageService, CaseFanService caseFanService, WC_CPU_BlockService wcCpuBlockService,
-            WC_RadiatorService wcRadiatorService, WC_ReservoirService wcReservoirService, CaseService caseService)
+            WC_RadiatorService wcRadiatorService, WC_ReservoirService wcReservoirService, CaseService caseService, 
+            ManufacturerService manufacturerService)
         {
             _context = context;
             _cpuService = cpuService;
@@ -43,38 +44,31 @@ namespace PCBuildWeb.Services.Building
             _wcRadiatorService = wcRadiatorService;
             _wcReservoirService = wcReservoirService;
             _caseService = caseService;
+            _manufacturerService = manufacturerService;
         }
 
-        public async Task BuildNewPC()
+        public async Task<Build> BuildNewPC(Parameter parameter)
         {
-            Build newBuild = new Build()
-            {
-                Budget = 2000,
-                CurrentLevel = 22,
-                CurrentLevelPercent = 1,
-                MemoryChannels = 2,
-                PreferredManufacturer = null,
-                TargetMemorySize = null,
-                TargetScore = 3000
-            };
+            Build newBuild = new Build() { Parameter = parameter };
 
-            //Select build type
-            newBuild.BuildType = new BuildType(TypeEnum.Usual);
+            //Set default priorities for the build type
+            newBuild.Parameter.PartPriorities = new BuildTypeDefaultPriority(newBuild.Parameter.BuildType).PartPriorities;
+            if(newBuild.Parameter.ManufacturerId is not null)
+            {
+                newBuild.Parameter.PreferredManufacturer = await _manufacturerService.FindByIdAsync(newBuild.Parameter.ManufacturerId.Value);
+            }            
             newBuild.Components = new List<Component>();
 
             // Search the best coponent for the build (order by priority to build acordely)
-            foreach (var component in newBuild.BuildType.BuildPartSpecs.OrderBy(b => b.Priority))
+            foreach (var component in newBuild.Parameter.PartPriorities.OrderBy(b => b.PartPriority))
             {
                 //Set build component basic properties
                 var newComponent = (new Component()
                 {
-                    Type = component.Type,
-                    Priority = component.Priority,
-                    BudgetPercent = component.BudgetPercent,
-                    BudgetValue = newBuild.Budget * component.BudgetPercent
+                    BudgetValue = newBuild.Parameter.Budget * component.PartBudgetPercent
                 });
 
-                switch (component.Type)
+                switch (component.PartType)
                 {
                     case PartType.CPU:
                         CPU? cpu = await _cpuService.FindBestCPU(newBuild, newComponent);
@@ -128,27 +122,33 @@ namespace PCBuildWeb.Services.Building
                 newBuild.Components.Add(newComponent);
             }
 
-            // Add more memories (considering memory channel count)
-            Component? memoryComponent = newBuild.Components.Where(c => c.Type == PartType.Memory).FirstOrDefault();
-            if (memoryComponent != null)
-            {
-                for (int i = 1; i < newBuild.MemoryChannels; i++)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = newBuild.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
+            {                
+                // Add more memories (considering memory channel count)
+                Component? memoryComponent = newBuild.Components.Where(c => c.BuildPart!.PartType == PartType.Memory).FirstOrDefault();
+                if (memoryComponent != null)
                 {
-                    newBuild.Components.Add(CopyComponent(memoryComponent));
+                    for (int i = 1; i < newBuild.Parameter.MemoryChannels; i++)
+                    {
+                        newBuild.Components.Add(CopyComponent(memoryComponent));
+                    }
+                }
+
+                // Add more fans (considering free slots)
+                Component? fanComponent = newBuild.Components.Where(c => c.BuildPart!.PartType == PartType.CaseFan).FirstOrDefault();
+                if (fanComponent != null)
+                {
+                    var freeSlots = await _caseFanService.CheckFanFreeSlots(newBuild);
+
+                    for (int i = 1; i < (freeSlots.Fan120 + freeSlots.Fan140); i++)
+                    {
+                        newBuild.Components.Add(CopyComponent(fanComponent));
+                    }
                 }
             }
-
-            // Add more fans (considering free slots)
-            Component? fanComponent = newBuild.Components.Where(c => c.Type == PartType.CaseFan).FirstOrDefault();
-            if (fanComponent != null)
-            {
-                var freeSlots = await _caseFanService.CheckFanFreeSlots(newBuild);
-
-                for (int i = 1; i < (freeSlots.Fan120 + freeSlots.Fan140); i++)
-                {
-                    newBuild.Components.Add(CopyComponent(fanComponent));
-                }
-            }
+            return newBuild;
         }
 
         //Copy the component to a new one
@@ -156,9 +156,6 @@ namespace PCBuildWeb.Services.Building
         {
             Component newComponent = new Component()
             {
-                Type = component.Type,
-                Priority = component.Priority,
-                BudgetPercent = component.BudgetPercent,
                 BudgetValue = component.BudgetValue,
                 BuildPart = component.BuildPart
             };

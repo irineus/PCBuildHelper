@@ -42,60 +42,65 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<PSU> bestPSU = await FindAllAsync();
             bestPSU = bestPSU
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Type) //Prioritize Modular
                 .ThenByDescending(c => c.Wattage) //Prioritize Power Output
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestPSU.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestPSU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestPSU = bestPSU
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .ToList();
                 }
             }
-            
-            // Sum used power from CPU
-            int neededPower = 0;
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
-            if (preRequisiteComponent != null)
-            {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
-                {
-                    CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCPU != null)
-                    {
-                        neededPower += selectedCPU.Wattage;
-                    }
-                }
-            }
 
-            // Add GPU Wattage (Should consider Dual GPU Builds)
-            List<Component>? preRequisiteComponents = build.Components.Where(c => c.Type == PartType.GPU).ToList();
-            if (preRequisiteComponents != null)
+            int neededPower = 0;
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                foreach (Component innerComponent in preRequisiteComponents)
+                // Sum used power from CPU
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
                     ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = innerComponent.BuildPart;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
                     if (preRequisiteComputerPart != null)
                     {
-                        GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedGPU != null)
+                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCPU != null)
                         {
-                            neededPower += selectedGPU.Wattage;
+                            neededPower += selectedCPU.Wattage;
+                        }
+                    }
+                }
+
+                // Add GPU Wattage (Should consider Dual GPU Builds)
+                List<Component>? preRequisiteComponents = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).ToList();
+                if (preRequisiteComponents != null)
+                {
+                    foreach (Component innerComponent in preRequisiteComponents)
+                    {
+                        ComputerPart? preRequisiteComputerPart = null;
+                        preRequisiteComputerPart = innerComponent.BuildPart;
+                        if (preRequisiteComputerPart != null)
+                        {
+                            GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                            if (selectedGPU != null)
+                            {
+                                neededPower += selectedGPU.Wattage;
+                            }
                         }
                     }
                 }
             }
-
+            
             // Add 10% power margin
             bestPSU = bestPSU
                 .Where(p => p.Wattage >= (neededPower * 1.1))

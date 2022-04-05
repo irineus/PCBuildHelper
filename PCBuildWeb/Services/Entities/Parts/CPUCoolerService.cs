@@ -22,7 +22,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             return await _context.CPUCooler
                 .Include(c => c.Manufacturer)
-                .Include(c => c.CompatibleSockets)
+                .Include(c => c.CPUSockets)
                 .ToListAsync();
         }
 
@@ -30,7 +30,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             return await _context.CPUCooler
                 .Include(c => c.Manufacturer)
-                .Include(c => c.CompatibleSockets)
+                .Include(c => c.CPUSockets)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -40,45 +40,49 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<CPUCooler> bestCPUCooler = await FindAllAsync();
             bestCPUCooler = bestCPUCooler
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestCPUCooler.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestCPUCooler.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestCPUCooler = bestCPUCooler
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
             // Filter AIO or AirCooler
-            bestCPUCooler = build.MustHaveAIOCooler ?
+            bestCPUCooler = build.Parameter.MustHaveAIOCooler ?
                 bestCPUCooler.Where(c => c.WaterCooler).OrderByDescending(c => c.Price).ToList() :
                 bestCPUCooler.Where(c => !c.WaterCooler).OrderByDescending(c => c.AirFlow).ToList();
 
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
-            if (preRequisiteComponent != null)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCPU != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        bestCPUCooler = build.MustHaveAIOCooler ?
-                            bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.Price).ToList() :
-                            bestCPUCooler.Where(c => c.CompatibleSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.AirFlow).ToList();
+                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCPU != null)
+                        {
+                            bestCPUCooler = build.Parameter.MustHaveAIOCooler ?
+                                bestCPUCooler.Where(c => c.CPUSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.Price).ToList() :
+                                bestCPUCooler.Where(c => c.CPUSockets.Contains(selectedCPU.CPUSocket)).OrderByDescending(c => c.AirFlow).ToList();
+                        }
                     }
                 }
             }
-
             return bestCPUCooler.FirstOrDefault();
         }
 

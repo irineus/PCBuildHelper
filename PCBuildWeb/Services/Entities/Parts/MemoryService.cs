@@ -36,8 +36,8 @@ namespace PCBuildWeb.Services.Entities.Parts
         public async Task<Memory?> FindBestMemory(Build build, Component component)
         {
             //Should consider multi-channel memory for budget and size of each chip
-            double memoryBudget = component.BudgetValue / build.MemoryChannels;
-            int? memorySize = build.TargetMemorySize / build.MemoryChannels;
+            double memoryBudget = component.BudgetValue / build.Parameter.MemoryChannels;
+            int? memorySize = build.Parameter.TargetMemorySize / build.Parameter.MemoryChannels;
             if (memorySize == null)
             {
                 memorySize = 0;
@@ -46,42 +46,46 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<Memory> bestMemory = await FindAllAsync();
             bestMemory = bestMemory
                 .Where(c => c.Price <= memoryBudget)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .Where(c => c.Size >= memorySize)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestMemory.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestMemory.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestMemory = bestMemory
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Motherboard).FirstOrDefault();
-            if (preRequisiteComponent != null)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    Motherboard? selectedMobo = await _motherboardService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedMobo != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        bestMemory = bestMemory
-                            .Where(m => m.Frequency <= selectedMobo.MaxRamSpeed)
-                            .OrderByDescending(c => c.Price)
-                            .ToList();
+                        Motherboard? selectedMobo = await _motherboardService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedMobo != null)
+                        {
+                            bestMemory = bestMemory
+                                .Where(m => m.Frequency <= selectedMobo.MaxRamSpeed)
+                                .OrderByDescending(c => c.Price)
+                                .ToList();
+                        }
                     }
                 }
             }
-
             return bestMemory.FirstOrDefault(); ;
         }
 

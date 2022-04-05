@@ -37,18 +37,18 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<WC_Radiator> bestWC_Radiator = await FindAllAsync();
             bestWC_Radiator = bestWC_Radiator
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestWC_Radiator.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestWC_Radiator.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestWC_Radiator = bestWC_Radiator
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }

@@ -7,22 +7,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Properties;
+using PCBuildWeb.Services.Entities.Properties;
 
 namespace PCBuildWeb.Controllers.Properties
 {
     public class ManufacturersController : Controller
     {
         private readonly PCBuildWebContext _context;
+        private readonly ManufacturerService _manufacturerService;
 
-        public ManufacturersController(PCBuildWebContext context)
+        public ManufacturersController(PCBuildWebContext context, ManufacturerService manufacturerService)
         {
             _context = context;
+            _manufacturerService = manufacturerService;
         }
 
         // GET: Manufacturers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Manufacturer.ToListAsync());
+            return View(await _manufacturerService.FindAllAsync());
         }
 
         // GET: Manufacturers/Details/5
@@ -33,8 +36,7 @@ namespace PCBuildWeb.Controllers.Properties
                 return NotFound();
             }
 
-            var manufacturer = await _context.Manufacturer
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var manufacturer = await _manufacturerService.FindByIdAsync(id.Value);
             if (manufacturer == null)
             {
                 return NotFound();
@@ -102,7 +104,7 @@ namespace PCBuildWeb.Controllers.Properties
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ManufacturerExists(manufacturer.Id))
+                    if (!_manufacturerService.ManufacturerExists(manufacturer.Id))
                     {
                         return NotFound();
                     }
@@ -143,11 +145,6 @@ namespace PCBuildWeb.Controllers.Properties
             _context.Manufacturer.Remove(manufacturer);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ManufacturerExists(int id)
-        {
-            return _context.Manufacturer.Any(e => e.Id == id);
         }
     }
 }

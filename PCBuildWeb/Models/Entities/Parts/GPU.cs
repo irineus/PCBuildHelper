@@ -10,7 +10,6 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public GPU()
         {
-            this.PowerConnectors = new HashSet<PowerConnector>();
         }
 
         [Display(Name = "Chipset Brand")]
@@ -18,7 +17,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [EnumDataType(typeof(GPUChipsetBrand))]
         public GPUChipsetBrand ChipsetBrand { get; set; }
         [ForeignKey("GPUChipsetId")]
-        public GPUChipset GPUChipset { get; set; }
+        public GPUChipset GPUChipset { get; set; } = new GPUChipset();
         [Display(Name = "GPU Chipset")]
         public int GPUChipsetId { get; set; }
         [Display(Name = "Watercooled?")]
@@ -80,7 +79,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(1.00, 4.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double SlotSize { get; set; }
         [Display(Name = "Power Connector List")]
-        public virtual ICollection<PowerConnector>? PowerConnectors { get; set; }
+        public List<PowerConnector> PowerConnectors { get; set; } = new List<PowerConnector>();
         [Display(Name = "Score to Value Ratio")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 20.00, ErrorMessage = "{0} should be a value between {1} and {2}")]

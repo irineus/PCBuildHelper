@@ -2,7 +2,7 @@
 
 namespace PCBuildWeb.Models.Building
 {
-    public class Component : BuildPartSpec
+    public class Component
     {
         public Component()
         {

@@ -8,10 +8,9 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public WC_CPU_Block()
         {
-            this.SupportedCPUSockets = new HashSet<CPUSocket>();
         }
 
         [Display(Name = "Supported CPU Sockets")]
-        public virtual ICollection<CPUSocket> SupportedCPUSockets { get; set; }
+        public List<CPUSocket> CPUSockets { get; set; } = new List<CPUSocket>();
     }
 }

@@ -7,9 +7,8 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public MoboSize()
         {
-            this.SupportedCases = new HashSet<Case>();
         }
 
-        public virtual ICollection<Case> SupportedCases { get; set; }
+        public List<Case> Cases { get; set; } = new List<Case>();
     }
 }

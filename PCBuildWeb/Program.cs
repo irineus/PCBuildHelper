@@ -7,6 +7,7 @@ using PCBuildWeb.Data;
 using PCBuildWeb.Models.ViewModels;
 using PCBuildWeb.Services.Building;
 using PCBuildWeb.Services.Entities.Parts;
+using PCBuildWeb.Services.Entities.Properties;
 using PCBuildWeb.Services.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +47,7 @@ builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<WC_CPU_BlockService>();
 builder.Services.AddScoped<WC_RadiatorService>();
 builder.Services.AddScoped<WC_ReservoirService>();
+builder.Services.AddScoped<ManufacturerService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

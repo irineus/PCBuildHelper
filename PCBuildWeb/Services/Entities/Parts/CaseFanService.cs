@@ -49,18 +49,18 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<CaseFan>? bestCaseFan = await FindAllAsync();
             bestCaseFan = bestCaseFan
                 .Where(c => c.Price <= caseFanBudget)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestCaseFan.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestCaseFan.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestCaseFan = bestCaseFan
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
@@ -115,86 +115,93 @@ namespace PCBuildWeb.Services.Entities.Parts
             (int Fan120, int Fan140) caseFreeSlots = (0, 0);
             (int Fan120, int Fan140) caseTotalSlots = (0, 0);
             (int Fan120, int Fan140) caseIncludedFans = (0, 0);
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.Case).FirstOrDefault();
-            if (preRequisiteComponent != null)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Case).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    Case? selectedCase = await _caseService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCase != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        caseIncludedFans.Fan120 = selectedCase.IncludedCaseFans == null ? 0
-                            : selectedCase.IncludedCaseFans.Where(f => f.Size == 120).Count();
-                        caseIncludedFans.Fan140 = selectedCase.IncludedCaseFans == null ? 0
-                            : selectedCase.IncludedCaseFans.Where(f => f.Size == 140).Count();
-                        caseTotalSlots = (selectedCase.Number120mmSlots, selectedCase.Number140mmSlots);
-                        caseFreeSlots = (caseTotalSlots.Fan120 - caseIncludedFans.Fan120, caseTotalSlots.Fan140 - caseIncludedFans.Fan140);
+                        Case? selectedCase = await _caseService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCase != null)
+                        {
+                            caseIncludedFans.Fan120 = selectedCase.CaseFans == null ? 0
+                                : selectedCase.CaseFans.Where(f => f.Size == 120).Count();
+                            caseIncludedFans.Fan140 = selectedCase.CaseFans == null ? 0
+                                : selectedCase.CaseFans.Where(f => f.Size == 140).Count();
+                            caseTotalSlots = (selectedCase.Number120mmSlots, selectedCase.Number140mmSlots);
+                            caseFreeSlots = (caseTotalSlots.Fan120 - caseIncludedFans.Fan120, caseTotalSlots.Fan140 - caseIncludedFans.Fan140);
+                        }
                     }
                 }
-            }
 
-            // Check if some slots were occuppied by AIO cooler
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPUCooler).FirstOrDefault();
-            if (preRequisiteComponent != null)
-            {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                // Check if some slots were occuppied by AIO cooler
+                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPUCooler).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    CPUCooler? selectedCPUCooler = await _cpuCoolerService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCPUCooler != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        if (selectedCPUCooler.WaterCooler)
+                        CPUCooler? selectedCPUCooler = await _cpuCoolerService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCPUCooler != null)
                         {
-                            int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
-                            if ((radiatorFanSize == 120) && (caseFreeSlots.Fan120 > 0) && (selectedCPUCooler.RadiatorSlots != null))
+                            if (selectedCPUCooler.WaterCooler)
                             {
-                                caseFreeSlots.Fan120 -= (int)selectedCPUCooler.RadiatorSlots;
-                            }
-                            if ((radiatorFanSize == 140) && (caseFreeSlots.Fan140 > 0) && (selectedCPUCooler.RadiatorSlots != null))
-                            {
-                                caseFreeSlots.Fan140 -= (int)selectedCPUCooler.RadiatorSlots;
+                                int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
+                                if ((radiatorFanSize == 120) && (caseFreeSlots.Fan120 > 0) && (selectedCPUCooler.RadiatorSlots != null))
+                                {
+                                    caseFreeSlots.Fan120 -= (int)selectedCPUCooler.RadiatorSlots;
+                                }
+                                if ((radiatorFanSize == 140) && (caseFreeSlots.Fan140 > 0) && (selectedCPUCooler.RadiatorSlots != null))
+                                {
+                                    caseFreeSlots.Fan140 -= (int)selectedCPUCooler.RadiatorSlots;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Check if some slots were occuppied by WC Radiator
-            preRequisiteComponent = build.Components.Where(c => c.Type == PartType.WC_Radiator).FirstOrDefault();
-            if (preRequisiteComponent != null)
-            {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                // Check if some slots were occuppied by WC Radiator
+                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.WC_Radiator).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    WC_Radiator? selectedWCRadiator = await _wcRadiatorService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedWCRadiator != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        int? radiatorFanSize = selectedWCRadiator.RadiatorSize / selectedWCRadiator.RadiatorSlots;
-                        if ((radiatorFanSize == 120) && (caseFreeSlots.Fan120 > 0))
+                        WC_Radiator? selectedWCRadiator = await _wcRadiatorService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedWCRadiator != null)
                         {
-                            caseFreeSlots.Fan120 -= (int)selectedWCRadiator.RadiatorSlots;
-                        }
-                        if ((radiatorFanSize == 140) && (caseFreeSlots.Fan140 > 0))
-                        {
-                            caseFreeSlots.Fan140 -= (int)selectedWCRadiator.RadiatorSlots;
+                            int? radiatorFanSize = selectedWCRadiator.RadiatorSize / selectedWCRadiator.RadiatorSlots;
+                            if ((radiatorFanSize == 120) && (caseFreeSlots.Fan120 > 0))
+                            {
+                                caseFreeSlots.Fan120 -= (int)selectedWCRadiator.RadiatorSlots;
+                            }
+                            if ((radiatorFanSize == 140) && (caseFreeSlots.Fan140 > 0))
+                            {
+                                caseFreeSlots.Fan140 -= (int)selectedWCRadiator.RadiatorSlots;
+                            }
                         }
                     }
                 }
-            }
 
-            // Check if there's already a fan in the build (not included by default)
-            List<Component> componentList = build.Components.Where(c => c.Type == PartType.CaseFan).ToList();
-            if (componentList.Count > 0)
-            {
-                List<CaseFan?> buildFans = componentList.Where(c => c.Type == PartType.CaseFan).Select(c => c.BuildPart).Select(c => c as CaseFan).ToList();
-                caseFreeSlots.Fan120 -= buildFans.Where(f => f.Size == 120).Count();
-                caseFreeSlots.Fan140 -= buildFans.Where(f => f.Size == 140).Count();
+                // Check if there's already a fan in the build (not included by default)
+                List<Component> componentList = build.Components.Where(c => c.BuildPart!.PartType == PartType.CaseFan).ToList();
+                if (componentList.Count > 0)
+                {
+                    List<CaseFan?> buildFans = componentList.Where(c => c.BuildPart!.PartType == PartType.CaseFan).Select(c => c.BuildPart).Select(c => c as CaseFan).ToList();
+                    if (buildFans is not null)
+                    {
+                        caseFreeSlots.Fan120 -= buildFans.Where(f => f!.Size == 120).Count();
+                        caseFreeSlots.Fan140 -= buildFans.Where(f => f!.Size == 140).Count();
+                    }
+                }
             }
-
             return caseFreeSlots;
         }
 

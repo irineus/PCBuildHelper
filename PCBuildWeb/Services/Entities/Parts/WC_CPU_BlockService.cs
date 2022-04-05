@@ -22,7 +22,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             return await _context.WC_CPU_Block
                 .Include(w => w.Manufacturer)
-                .Include(w => w.SupportedCPUSockets)
+                .Include(w => w.CPUSockets)
                 .ToListAsync();
         }
 
@@ -30,7 +30,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             return await _context.WC_CPU_Block
                 .Include(w => w.Manufacturer)
-                .Include(w => w.SupportedCPUSockets)
+                .Include(w => w.CPUSockets)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -40,42 +40,46 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<WC_CPU_Block> bestWC_CPU_Block = await FindAllAsync();
             bestWC_CPU_Block = bestWC_CPU_Block
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
+                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer != null)
             {
-                if (bestWC_CPU_Block.Where(c => c.Manufacturer == build.PreferredManufacturer).Any())
+                if (bestWC_CPU_Block.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestWC_CPU_Block = bestWC_CPU_Block
-                        .Where(c => c.Manufacturer == build.PreferredManufacturer)
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
                         .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
-            // Check CPU Socket Type
-            Component? preRequisiteComponent = build.Components.Where(c => c.Type == PartType.CPU).FirstOrDefault();
-            if (preRequisiteComponent != null)
+            // Check if there's any selected build part in the component list
+            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+            if (componentsWithBuildParts.Any())
             {
-                ComputerPart? preRequisiteComputerPart = null;
-                preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                if (preRequisiteComputerPart != null)
+                // Check CPU Socket Type
+                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
+                if (preRequisiteComponent != null)
                 {
-                    CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                    if (selectedCPU != null)
+                    ComputerPart? preRequisiteComputerPart = null;
+                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                    if (preRequisiteComputerPart != null)
                     {
-                        bestWC_CPU_Block = bestWC_CPU_Block
-                            .Where(c => c.SupportedCPUSockets.Contains(selectedCPU.CPUSocket))
-                            .OrderByDescending(c => c.Price)
-                            .ToList();
+                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                        if (selectedCPU != null)
+                        {
+                            bestWC_CPU_Block = bestWC_CPU_Block
+                                .Where(c => c.CPUSockets.Contains(selectedCPU.CPUSocket))
+                                .OrderByDescending(c => c.Price)
+                                .ToList();
+                        }
                     }
                 }
             }
-
             return bestWC_CPU_Block.FirstOrDefault();
         }
 

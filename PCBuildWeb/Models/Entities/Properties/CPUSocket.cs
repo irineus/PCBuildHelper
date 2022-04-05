@@ -7,13 +7,11 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public CPUSocket()
         {
-            this.CPUCoolers = new HashSet<CPUCooler>();
-            this.WC_CPU_Blocks = new HashSet<WC_CPU_Block>();
         }
 
-        public virtual ICollection<CPUCooler> CPUCoolers { get; set; }
-        public virtual ICollection<WC_CPU_Block> WC_CPU_Blocks { get; set; }
-        public virtual ICollection<CPU> CPUs { get; set; }
-        public virtual ICollection<Motherboard> Motherboards { get; set; }
+        public List<CPUCooler> CPUCoolers { get; set; } = new List<CPUCooler>();
+        public List<WC_CPU_Block> WC_CPU_Blocks { get; set; } = new List<WC_CPU_Block>();
+        public List<CPU> CPUs { get; set; } = new List<CPU>();
+        public List<Motherboard> Motherboards { get; set; } = new List<Motherboard>();
     }
 }

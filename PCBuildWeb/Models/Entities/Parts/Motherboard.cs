@@ -10,19 +10,18 @@ namespace PCBuildWeb.Models.Entities.Parts
     {
         public Motherboard()
         {
-            //this.MultiGPUSupport = new HashSet<MultiGPU>();
         }
         
         [ForeignKey("MoboChipsetId")]
-        public MoboChipset MoboChipset { get; set; }
+        public MoboChipset MoboChipset { get; set; } = new MoboChipset();
         [Display(Name = "Chipset")]
         public int MoboChipsetId { get; set; }
         [ForeignKey("CPUSocketId")]
-        public CPUSocket CPUSocket { get; set; }
+        public CPUSocket CPUSocket { get; set; } = new CPUSocket();
         [Display(Name = "Socket")]
         public int CPUSocketId { get; set; }
         [ForeignKey("MoboSizeId")]
-        public MoboSize Size { get; set; }
+        public MoboSize Size { get; set; } = new MoboSize();
         [Display(Name = "Mobo Form Factor")]
         public int MoboSizeId { get; set; }
         [Display(Name = "Max Ram Speed")]
@@ -30,7 +29,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int MaxRamSpeed { get; set; }
         [Display(Name = "Multi GPU Support")]
-        public List<MultiGPU> MultiGPUSupport { get; } = new List<MultiGPU>();
+        public List<MultiGPU> MultiGPUs { get; } = new List<MultiGPU>();
         [Display(Name = "Dual GPU Max Slot Size")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]

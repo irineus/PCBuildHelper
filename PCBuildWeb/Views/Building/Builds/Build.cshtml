@@ -1,0 +1,99 @@
+﻿@model PCBuildWeb.Models.Building.Parameter
+
+@{
+    ViewData["Title"] = "Building Parameters";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+
+<form class="form-horizontal" asp-action="BuildResult">
+    <fieldset>
+        <legend></legend>
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label asp-for="CurrentLevel" class="col-lg-4 control-label"></label>
+                    <input asp-for="CurrentLevel" class="form-control" placeholder="Enter your current level" />
+                    <span asp-validation-for="CurrentLevel" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CurrentLevelPercent" class="col-lg-4 control-label"></label>
+                    <input asp-for="CurrentLevelPercent" class="form-control" placeholder="Enter your current level progress in %" />
+                    <span asp-validation-for="CurrentLevelPercent" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Budget" class="col-lg-4 control-label"></label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="Budget" class="form-control" placeholder="Enter build max budget" />
+                        <span class="input-group-text">.00</span>
+                        <span asp-validation-for="Budget" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="TargetScore" class="col-lg-4 control-label"></label>
+                    <input asp-for="TargetScore" class="form-control" placeholder="Enter the target score" />
+                    <span asp-validation-for="TargetScore" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TargetMemorySize" class="col-lg-6 control-label"></label>
+                    <input asp-for="TargetMemorySize" class="form-control" placeholder="Enter the target RAM ammount (GB)" />
+                    <span asp-validation-for="TargetMemorySize" class="text-danger"></span>
+                </div>
+                
+                
+            </div>
+            <div class="col-lg-4 offset-lg-1">
+                <div class="form-group">
+                    <label asp-for="BuildType" class="col-lg-4 control-label"></label>
+                    <select asp-for="BuildType" class="form-control" asp-items="ViewBag.BuildType"></select>
+                    <span asp-validation-for="BuildType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MemoryChannels" class="col-lg-4 control-label"></label>
+                    <select asp-for="MemoryChannels" class="form-control" asp-items="ViewBag.MemoryChannels"></select>
+                    <span asp-validation-for="MemoryChannels" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ManufacturerId" class="col-lg-6 control-label"></label>
+                    <select asp-for="ManufacturerId" class="form-control" asp-items="ViewBag.ManufacturerId"></select>
+                </div>
+                <hr />
+                <div class="form-check form-switch">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" asp-for="MustHaveAIOCooler" /> @Html.DisplayNameFor(model => model.MustHaveAIOCooler)
+                    </label>
+                </div>
+                <div class="form-group form-switch">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" asp-for="MustHaveDualGPU" /> @Html.DisplayNameFor(model => model.MustHaveDualGPU)
+                    </label>
+                </div>
+                <div class="form-group form-switch">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" asp-for="MustHaveCustomWC" /> @Html.DisplayNameFor(model => model.MustHaveCustomWC)
+                    </label>
+                </div>
+                <div class="form-group form-switch">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" asp-for="EnableOpenBench" /> @Html.DisplayNameFor(model => model.EnableOpenBench)
+                    </label>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="form-group">
+            <input type="submit" value="Build" class="btn btn-primary" />
+        </div>
+    </fieldset>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

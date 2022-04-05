@@ -7,8 +7,8 @@ namespace PCBuildWeb.Models.Entities.Properties
     {
         public PowerConnector()
         {
-            this.UsedInThisGPUs = new HashSet<GPU>();
+            //this.UsedInThisGPUs = new HashSet<GPU>();
         }
-        public virtual ICollection<GPU> UsedInThisGPUs { get; set; }
+        public List<GPU> GPUs { get; set; } = new List<GPU>();
     }
 }
