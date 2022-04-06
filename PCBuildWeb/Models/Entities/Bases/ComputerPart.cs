@@ -40,6 +40,8 @@ namespace PCBuildWeb.Models.Entities.Bases
         public int LevelPercent { get; set; }
         [EnumDataType(typeof(Color))]
         public Color? Lighting { get; set; }
+        [Display(Name = "Commit Part?")]
+        public bool Commited { get; set; }
 
         public object Clone()
         {

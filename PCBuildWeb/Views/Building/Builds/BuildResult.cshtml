@@ -10,7 +10,7 @@
 <h2>@ViewData["Title"]</h2>
 <hr />
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <h5>Build Costs:</h5>
         <p class="text-success">Total value: $@Model.Components.Sum(c => c.BuildPart!.Price)</p>
         <p class="text-success">Spare Budget: $@(Model.Parameter.Budget-Model.Components.Sum(c => c.BuildPart!.Price))</p>
@@ -24,7 +24,7 @@
 </div>
 <hr />
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <h4>Main Parts</h4>
         @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.CPU ||
         c.BuildPart.PartType == PartType.Motherboard ||
@@ -35,7 +35,18 @@
                 <div class="card-header">@component.BuildPart!.PartType</div>
                 <div class="card-body">
                     <h6 class="card-title">@string.Concat(component.BuildPart.Manufacturer.Name," - ",component.BuildPart.Name)</h6>
-                    <p class="card-text">Price: $@component.BuildPart.Price</p>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <p class="card-text">Price: $@component.BuildPart.Price</p>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-check form-switch">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" asp-for="@component.BuildPart.Commited" /> @Html.DisplayNameFor(model => model.Components.FirstOrDefault().BuildPart.Commited)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <p class="card-text">Defined Budget: $@component.BudgetValue</p>
                     @if (@component.BuildPart!.PartType == PartType.CPU)
                     {
@@ -51,7 +62,7 @@
             </div>
         }
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <h4>Secondary Parts</h4>
         @foreach (var component in Model.Components.Where(c => c.BuildPart!.PartType == PartType.CPUCooler ||
         c.BuildPart.PartType == PartType.PSU ||
