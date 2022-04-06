@@ -38,18 +38,22 @@ namespace PCBuildWeb.Services.Entities.Parts
             //Should consider multi-channel memory for budget and size of each chip
             double memoryBudget = component.BudgetValue / build.Parameter.MemoryChannels;
             int? memorySize = build.Parameter.TargetMemorySize / build.Parameter.MemoryChannels;
-            if (memorySize == null)
+            if (memorySize is null)
             {
                 memorySize = 0;
             }
+            component.BudgetValue = memoryBudget;
 
             List<Memory> bestMemory = await FindAllAsync();
             bestMemory = bestMemory
                 .Where(c => c.Price <= memoryBudget)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .Where(c => c.Size >= memorySize)
-                .OrderByDescending(c => c.Price)
+                .OrderByDescending(c => c.Lighting.HasValue)
+                .ThenBy(c => c.Lighting)
+                .ThenByDescending(c => c.Size)
+                .ThenByDescending(c => c.Frequency)
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
@@ -59,7 +63,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 {
                     bestMemory = bestMemory
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
@@ -80,7 +83,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                         {
                             bestMemory = bestMemory
                                 .Where(m => m.Frequency <= selectedMobo.MaxRamSpeed)
-                                .OrderByDescending(c => c.Price)
                                 .ToList();
                         }
                     }

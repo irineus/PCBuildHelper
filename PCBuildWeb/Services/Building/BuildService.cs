@@ -132,7 +132,8 @@ namespace PCBuildWeb.Services.Building
                 {
                     for (int i = 1; i < newBuild.Parameter.MemoryChannels; i++)
                     {
-                        newBuild.Components.Add(CopyComponent(memoryComponent));
+                        //newBuild.Components.Add(CopyComponent(memoryComponent));
+                        newBuild.Components.Add((Component)memoryComponent.Clone());
                     }
                 }
 
@@ -142,9 +143,9 @@ namespace PCBuildWeb.Services.Building
                 {
                     var freeSlots = await _caseFanService.CheckFanFreeSlots(newBuild);
 
-                    for (int i = 1; i < (freeSlots.Fan120 + freeSlots.Fan140); i++)
+                    for (int i = 1; i <= (freeSlots.Fan120 + freeSlots.Fan140); i++)
                     {
-                        newBuild.Components.Add(CopyComponent(fanComponent));
+                        newBuild.Components.Add((Component)(fanComponent.Clone()));
                     }
                 }
             }

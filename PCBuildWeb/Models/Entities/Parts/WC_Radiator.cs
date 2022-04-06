@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class WC_Radiator : ComputerPart
+    public class WC_Radiator : ComputerPart, ICloneable
     {
         [Display(Name = "Air Flow")]
         [Required(ErrorMessage = "{0} is required")]
@@ -26,5 +26,11 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(1.00, 5.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double AirPresure { get; set; }
+
+        public new object Clone()
+        {
+            var wcRadiatorClone = (WC_Radiator)MemberwiseClone();
+            return wcRadiatorClone;
+        }
     }
 }

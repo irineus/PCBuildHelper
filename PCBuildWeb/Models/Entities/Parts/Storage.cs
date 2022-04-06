@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class Storage : ComputerPart
+    public class Storage : ComputerPart, ICloneable
     {
         [Display(Name = "Type")]
         [Required(ErrorMessage = "{0} is required")]
@@ -22,6 +22,12 @@ namespace PCBuildWeb.Models.Entities.Parts
         public bool IncludesHeatsink { get; set; }
         [Display(Name = "Heatsink Thickness")]
         public double? HeatsinkThickness { get; set; }
+
+        public new object Clone()
+        {
+            var storageClone = (Storage)MemberwiseClone();
+            return storageClone;
+        }
 
     }
 }

@@ -44,14 +44,18 @@ namespace PCBuildWeb.Services.Entities.Parts
             if ((caseFreeSlots.Fan120 + caseFreeSlots.Fan140) > 0)
             {
                 caseFanBudget = component.BudgetValue / (caseFreeSlots.Fan120 + caseFreeSlots.Fan140);
+                component.BudgetValue = caseFanBudget;
             }
 
             List<CaseFan>? bestCaseFan = await FindAllAsync();
             bestCaseFan = bestCaseFan
                 .Where(c => c.Price <= caseFanBudget)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
-                .OrderByDescending(c => c.Price)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
+                .OrderByDescending(c => c.Lighting.HasValue)
+                .ThenBy(c => c.Lighting)
+                .ThenByDescending(c => c.AirFlow)
+                .ThenBy(c => c.Size)
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
@@ -61,44 +65,30 @@ namespace PCBuildWeb.Services.Entities.Parts
                 {
                     bestCaseFan = bestCaseFan
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
             if ((caseFreeSlots.Fan120 > 0) && (caseFreeSlots.Fan140 > 0))
             {
-                // Case support for both 120mm and 140mm
+                // Case support for both 120mm and 140mm, the universal fan will be 140mm
                 bestCaseFan = bestCaseFan
-                    .Where(f => (f.Size == 120) || (f.Size == 140))
-                    .OrderByDescending(c => c.Price)
+                    .Where(f => (f.Size == 120))
                     .ToList();
             }
             else
             {
-                // Case support only for 120mm
-                if (caseFreeSlots.Fan120 > 0)
+                // Case support left only for 140mm, fit this one
+                if (caseFreeSlots.Fan140 > 0)
                 {
                     bestCaseFan = bestCaseFan
-                        .Where(f => f.Size == 120)
-                        .OrderByDescending(c => c.Price)
+                        .Where(f => f.Size == 140)
                         .ToList();
                 }
                 else
                 {
-                    // Case support only for 140mm
-                    if (caseFreeSlots.Fan140 > 0)
-                    {
-                        bestCaseFan = bestCaseFan
-                            .Where(f => f.Size == 120)
-                            .OrderByDescending(c => c.Price)
-                            .ToList();
-                    }
-                    else
-                    {
-                        // No case support for more fans
-                        bestCaseFan = null;
-                    }
+                    // No case support for more fans
+                    bestCaseFan = null;
                 }
             }
 

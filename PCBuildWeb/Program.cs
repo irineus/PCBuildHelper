@@ -8,7 +8,6 @@ using PCBuildWeb.Models.ViewModels;
 using PCBuildWeb.Services.Building;
 using PCBuildWeb.Services.Entities.Parts;
 using PCBuildWeb.Services.Entities.Properties;
-using PCBuildWeb.Services.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +24,6 @@ builder.Configuration.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOpt
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("PCBuildWebContext");
-
-builder.Services.AddTransient<SeedingService>();
 
 builder.Services.AddDbContext<PCBuildWebContext>(options =>
     options.UseMySql(connectionString,
@@ -58,21 +55,6 @@ builder.Services.Configure<RazorViewEngineOptions>(options =>
 });
 
 var app = builder.Build();
-
-if (args.Length == 1 && args[0].ToLower() == "seeddata")
-    SeedData(app);
-
-//Seed Data
-static void SeedData(IHost app)
-{
-    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-
-    using (var scope = scopedFactory.CreateScope())
-    {
-        var service = scope.ServiceProvider.GetService<SeedingService>();
-        service.Seed();
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

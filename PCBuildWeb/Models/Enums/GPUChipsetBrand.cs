@@ -2,7 +2,7 @@
 {
     public enum GPUChipsetBrand : int
     {
-        AMD = 1,
-        NVIDIA = 2
+        AMD_RADEON = 1,
+        NVIDIA_GEFORCE = 2
     }
 }

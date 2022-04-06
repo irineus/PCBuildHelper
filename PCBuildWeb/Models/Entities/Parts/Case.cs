@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class Case : ComputerPart
+    public class Case : ComputerPart, ICloneable
     {
         public Case()
         {
@@ -56,5 +56,32 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(0.00, 10.00, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double InherentCooling { get; set; }
+
+        public new object Clone()
+        {
+            var caseClone = (Case)MemberwiseClone();   
+            if (MoboSizes is not null)
+            {
+                foreach(MoboSize moboSize in MoboSizes)
+                {
+                    caseClone.MoboSizes.Add((MoboSize)moboSize.Clone());
+                }
+            }
+            if (PSUSizes is not null)
+            {
+                foreach (PSUSize psuSize in PSUSizes)
+                {
+                    caseClone.PSUSizes.Add((PSUSize)psuSize.Clone());
+                }
+            }
+            if (CaseFans is not null)
+            {
+                foreach (CaseFan caseFan in CaseFans)
+                {
+                    caseClone.CaseFans.Add((CaseFan)caseFan.Clone());
+                }
+            }
+            return caseClone;
+        }
     }
 }

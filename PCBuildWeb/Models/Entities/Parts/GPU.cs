@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class GPU : ComputerPart
+    public class GPU : ComputerPart, ICloneable
     {
         public GPU()
         {
@@ -104,7 +104,24 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(0, 50000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int? OverclockedDualGPUScore { get; set; }
-
+        
+        public new object Clone()
+        {
+            var gpuClone = (GPU)MemberwiseClone();
+            gpuClone.GPUChipset = (GPUChipset)GPUChipset.Clone();
+            if (MultiGPU is not null)
+            {
+                gpuClone.MultiGPU = (MultiGPU)MultiGPU.Clone();
+            }
+            if (PowerConnectors is not null)
+            {
+                foreach (PowerConnector powerConnector in PowerConnectors)
+                {
+                    gpuClone.PowerConnectors.Add((PowerConnector)powerConnector.Clone());
+                }
+            }
+            return gpuClone;
+        }
 
     }
 }

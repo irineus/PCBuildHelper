@@ -38,26 +38,33 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<CPU> bestCPU = await FindAllAsync();
             bestCPU = bestCPU
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
-                .OrderByDescending(c => c.Price)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
+                .OrderByDescending(c => c.RankingScore) // Order by ranking score
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer is not null)
             {
                 if (bestCPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestCPU = bestCPU
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
+            // Check for Clock Target
+            if (build.Parameter.TargetCPUClock is not null)
+            {
+                bestCPU = bestCPU
+                    .Where(c => c.OverclockedFrequency >= build.Parameter.TargetCPUClock)
+                    .ToList();
+            }
+
             if (build.Parameter.MemoryChannels > 0)
             {
-                bestCPU = bestCPU.Where(c => c.MaxMemoryChannels <= build.Parameter.MemoryChannels).OrderByDescending(c => c.Price).ToList();
+                bestCPU = bestCPU.Where(c => c.MaxMemoryChannels >= build.Parameter.MemoryChannels).ToList();
             }
 
             return bestCPU.FirstOrDefault();

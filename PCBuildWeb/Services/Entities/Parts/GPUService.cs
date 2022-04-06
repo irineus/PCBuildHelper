@@ -24,7 +24,7 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .Include(g => g.PowerConnectors)
                 .ToListAsync();
         }
-        
+
         public async Task<GPU?> FindByIdAsync(int id)
         {
             return await _context.GPU
@@ -41,27 +41,39 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<GPU> bestGPU = await FindAllAsync();
             bestGPU = bestGPU
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
-                .OrderByDescending(c => c.Price)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
+                .OrderByDescending(c => c.RankingScore)
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
+            if (build.Parameter.PreferredManufacturer is not null)
             {
                 if (bestGPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
                 {
                     bestGPU = bestGPU
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
 
-            // Check if there's any selected build part in the component list
+            // Check for Custom WC requisite
+            bestGPU = build.Parameter.MustHaveCustomWC ? bestGPU.Where(c => c.IsWaterCooled).ToList() : bestGPU.Where(c => !c.IsWaterCooled).ToList();
+
+            // Check for Clock Target
+            if (build.Parameter.TargetGPUClock is not null)
+            {
+                bestGPU = bestGPU
+                    .Where(c => c.OverclockedCoreFrequency >= build.Parameter.TargetGPUClock)
+                    .ToList();
+            }
+
+            // Insert second GPU in Dual GPU Builds
+            // Check if theres any build part yet
             List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
             if (componentsWithBuildParts.Any())
             {
+                // Check if theres a GPU in the build
                 Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).FirstOrDefault();
                 if (preRequisiteComponent != null)
                 {
@@ -69,12 +81,9 @@ namespace PCBuildWeb.Services.Entities.Parts
                     preRequisiteComputerPart = preRequisiteComponent.BuildPart;
                     if (preRequisiteComputerPart != null)
                     {
-                        //Dual GPU: select another identical one
+                        // Return a clone of the fisrt GPU to insert as the second one
                         GPU selectedGPU = (GPU)preRequisiteComputerPart;
-                        bestGPU = bestGPU
-                            .Where(g => g.Id == selectedGPU.Id)
-                            .OrderByDescending(g => g.Price)
-                            .ToList();
+                        return (GPU)selectedGPU.Clone();
                     }
                 }
             }
@@ -84,6 +93,6 @@ namespace PCBuildWeb.Services.Entities.Parts
         public bool GPUExists(int id)
         {
             return _context.GPU.Any(e => e.Id == id);
-        }        
+        }
     }
 }

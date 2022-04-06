@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class CPU : ComputerPart
+    public class CPU : ComputerPart, ICloneable
     {
         [ForeignKey("SeriesId")]
         public CPUSeries Series { get; set; }
@@ -91,5 +91,13 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(0.00001, 0.01, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double MemClockMultiplier { get; set; }
+
+        public new object Clone()
+        {
+            var cpuClone = (CPU)MemberwiseClone();
+            cpuClone.Series = (CPUSeries)Series.Clone();
+            cpuClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
+            return cpuClone;
+        }
     }
 }

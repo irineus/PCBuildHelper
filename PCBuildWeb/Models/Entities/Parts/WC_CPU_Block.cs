@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class WC_CPU_Block : ComputerPart
+    public class WC_CPU_Block : ComputerPart, ICloneable
     {
         public WC_CPU_Block()
         {
@@ -12,5 +12,18 @@ namespace PCBuildWeb.Models.Entities.Parts
 
         [Display(Name = "Supported CPU Sockets")]
         public List<CPUSocket> CPUSockets { get; set; } = new List<CPUSocket>();
+
+        public new object Clone()
+        {
+            var wcCPUBlockClone = (WC_CPU_Block)MemberwiseClone();
+            if (CPUSockets is not null)
+            {
+                foreach (CPUSocket cpuSocket in CPUSockets)
+                {
+                    wcCPUBlockClone.CPUSockets.Add((CPUSocket)cpuSocket.Clone());
+                }
+            }
+            return wcCPUBlockClone;
+        }        
     }
 }

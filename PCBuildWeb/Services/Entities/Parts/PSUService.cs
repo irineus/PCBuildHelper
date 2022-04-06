@@ -42,8 +42,7 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<PSU> bestPSU = await FindAllAsync();
             bestPSU = bestPSU
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Type) //Prioritize Modular
                 .ThenByDescending(c => c.Wattage) //Prioritize Power Output
                 .ThenByDescending(c => c.Price)
@@ -76,25 +75,33 @@ namespace PCBuildWeb.Services.Entities.Parts
                         CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
                         if (selectedCPU != null)
                         {
-                            neededPower += selectedCPU.Wattage;
+                            // If it's possible to Overclock, add 25% more power requirement
+                            neededPower += selectedCPU.Overclockable ? (int)(selectedCPU.Wattage * 1.25) : selectedCPU.Wattage;
                         }
                     }
                 }
-
+                
                 // Add GPU Wattage (Should consider Dual GPU Builds)
-                List<Component>? preRequisiteComponents = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).ToList();
-                if (preRequisiteComponents != null)
+                // Check if theres any build part yet
+                componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+                if (componentsWithBuildParts.Any())
                 {
-                    foreach (Component innerComponent in preRequisiteComponents)
+                    // Get the GPUs from the build
+                    List<Component>? preRequisiteComponents = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).ToList();
+                    if (preRequisiteComponents != null)
                     {
-                        ComputerPart? preRequisiteComputerPart = null;
-                        preRequisiteComputerPart = innerComponent.BuildPart;
-                        if (preRequisiteComputerPart != null)
+                        foreach (Component innerComponent in preRequisiteComponents)
                         {
-                            GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                            if (selectedGPU != null)
+                            ComputerPart? preRequisiteComputerPart = null;
+                            preRequisiteComputerPart = innerComponent.BuildPart;
+                            if (preRequisiteComputerPart != null)
                             {
-                                neededPower += selectedGPU.Wattage;
+                                GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
+                                if (selectedGPU != null)
+                                {
+                                    // If the GPU is and AMD Radeon, add 50% more power requirement for eventual OC. If it's a NVIDIA GeForce, add 20% more power requirement for eventual OC.
+                                    neededPower += selectedGPU.ChipsetBrand == GPUChipsetBrand.AMD_RADEON ? (int)(selectedGPU.Wattage * 1.5) : (int)(selectedGPU.Wattage * 1.2);
+                                }
                             }
                         }
                     }

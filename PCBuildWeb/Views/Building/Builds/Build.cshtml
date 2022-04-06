@@ -20,11 +20,6 @@
                     <span asp-validation-for="CurrentLevel" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="CurrentLevelPercent" class="col-lg-4 control-label"></label>
-                    <input asp-for="CurrentLevelPercent" class="form-control" placeholder="Enter your current level progress in %" />
-                    <span asp-validation-for="CurrentLevelPercent" class="text-danger"></span>
-                </div>
-                <div class="form-group">
                     <label asp-for="Budget" class="col-lg-4 control-label"></label>
                     <div class="input-group mb-3">
                         <span class="input-group-text">$</span>
@@ -33,11 +28,15 @@
                         <span asp-validation-for="Budget" class="text-danger"></span>
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label asp-for="TargetScore" class="col-lg-4 control-label"></label>
-                    <input asp-for="TargetScore" class="form-control" placeholder="Enter the target score" />
-                    <span asp-validation-for="TargetScore" class="text-danger"></span>
+                    <label asp-for="TargetCPUClock" class="col-lg-6 control-label"></label>
+                    <input asp-for="TargetCPUClock" class="form-control" placeholder="Enter the target CPU Clock" />
+                    <span asp-validation-for="TargetCPUClock" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TargetGPUClock" class="col-lg-6 control-label"></label>
+                    <input asp-for="TargetGPUClock" class="form-control" placeholder="Enter the target GPU Clock" />
+                    <span asp-validation-for="TargetGPUClock" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="TargetMemorySize" class="col-lg-6 control-label"></label>

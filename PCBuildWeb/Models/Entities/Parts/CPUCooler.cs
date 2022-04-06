@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class CPUCooler : ComputerPart
+    public class CPUCooler : ComputerPart, ICloneable
     {
         public CPUCooler()
         {
@@ -35,5 +35,18 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Display(Name = "Air Pressure")]
         [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double? AirPressure { get; set; }
+
+        public new object Clone()
+        {
+            var cpuCoolerClone = (CPUCooler)MemberwiseClone();
+            if (CPUSockets is not null)
+            {
+                foreach (CPUSocket cpuSocket in CPUSockets)
+                {
+                    cpuCoolerClone.CPUSockets.Add((CPUSocket)cpuSocket.Clone());
+                }
+            }
+            return cpuCoolerClone;
+        }
     }
 }

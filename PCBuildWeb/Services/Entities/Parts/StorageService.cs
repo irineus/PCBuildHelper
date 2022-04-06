@@ -38,9 +38,10 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<Storage> bestStorage = await FindAllAsync();
             bestStorage = bestStorage
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Speed)
+                .ThenByDescending(c => c.Size)
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             // Check for Manufator preference
@@ -50,7 +51,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 {
                     bestStorage = bestStorage
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
@@ -81,7 +81,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                                         // No M.2 support => downgrade type
                                         bestStorage = bestStorage
                                             .Where(s => s.Type != StorageType.M_2)
-                                            .OrderByDescending(s => s.Speed)
                                             .ToList();
                                     }
                                     else
@@ -92,7 +91,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                                             // Remove Heatsinked M.2 from list
                                             bestStorage = bestStorage
                                                 .Where(s => !s.IncludesHeatsink)
-                                                .OrderByDescending(s => s.Speed)
                                                 .ToList();
                                         }
                                     }

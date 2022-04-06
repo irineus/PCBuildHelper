@@ -16,10 +16,6 @@ namespace PCBuildWeb.Models.Building
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 50, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int CurrentLevel { get; set; }
-        [Display(Name = "Level %")]
-        [Required(ErrorMessage = "{0} is required")]
-        [Range(1, 99, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int CurrentLevelPercent { get; set; } = 1;
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "{0} is required")]
         [DataType(DataType.Currency)]
@@ -35,6 +31,12 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Target Memory Size (GB)")]
         [Range(2, 512, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int? TargetMemorySize { get; set; }
+        [Display(Name = "Target CPU Clock (MHz)")]
+        [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
+        public int? TargetCPUClock { get; set; }
+        [Display(Name = "Target GPU Clock (MHz)")]
+        [Range(500, 3000, ErrorMessage = "{0} should be a value between {1} and {2}")]
+        public int? TargetGPUClock { get; set; }
         [Display(Name = "Memory Channels")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 4, ErrorMessage = "{0} should be a value between {1} and {2}")]

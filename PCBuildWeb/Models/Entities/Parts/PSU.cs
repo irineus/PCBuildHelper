@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class PSU : ComputerPart
+    public class PSU : ComputerPart, ICloneable
     {
         [Display(Name = "Max Power")]
         [Required(ErrorMessage = "{0} is required")]
@@ -24,5 +24,12 @@ namespace PCBuildWeb.Models.Entities.Parts
         public PSUSize PSUSize { get; set; }
         [Display(Name = "Form Factor")]
         public int PSUSizeId { get; set; }
+
+        public new object Clone()
+        {
+            var psuClone = (PSU)MemberwiseClone();
+            psuClone.PSUSize = (PSUSize)PSUSize.Clone();
+            return psuClone;
+        }
     }
 }

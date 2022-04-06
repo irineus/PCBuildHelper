@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Bases
 {
-    public abstract class ComputerPart
+    public abstract class ComputerPart : ICloneable
     {
         [Key]
         public int Id { get; set; }
@@ -40,5 +40,12 @@ namespace PCBuildWeb.Models.Entities.Bases
         public int LevelPercent { get; set; }
         [EnumDataType(typeof(Color))]
         public Color? Lighting { get; set; }
+
+        public object Clone()
+        {
+            var computerPart = (ComputerPart)MemberwiseClone();
+            computerPart.Manufacturer = (Manufacturer)Manufacturer.Clone();
+            return computerPart;
+        }
     }
 }

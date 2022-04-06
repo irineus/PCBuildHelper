@@ -56,10 +56,16 @@ namespace PCBuildWeb.Services.Entities.Parts
             List<Case> bestCase = await FindAllAsync();
             bestCase = bestCase
                 .Where(c => c.Price <= component.BudgetValue)
-                .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
-                .OrderByDescending(c => c.Price)
+                .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
+                
+                .OrderByDescending(c => (c.Number120mmSlots + c.Number140mmSlots))
+                .ThenByDescending(c => c.CaseSize)
+                .ThenByDescending(c => c.MaxGPULength)
+                .ThenByDescending(c => c.MaxPsuLength)
+                .ThenByDescending(c => c.MaxCPUFanHeight)
+                .ThenByDescending(c => c.Price)
                 .ToList();
+
             if (bestCase.Any())
             {
                 if (!build.Parameter.EnableOpenBench)
@@ -78,7 +84,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 {
                     bestCase = bestCase
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
@@ -100,7 +105,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                         {
                             bestCase = bestCase
                                 .Where(c => c.MoboSizes.Contains(selectedMobo.Size))
-                                .OrderByDescending(c => c.Price)
                                 .ToList();
                         }
                     }
@@ -123,23 +127,22 @@ namespace PCBuildWeb.Services.Entities.Parts
                                 int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
                                 if (radiatorFanSize == 120)
                                 {
+                                    // 120mm radiator can go in both 120 or 140mm slots
                                     bestCase = bestCase
-                                        .Where(c => c.Number120mmSlots >= selectedCPUCooler.RadiatorSlots)
-                                        .OrderByDescending(c => c.Price)
+                                        .Where(c => (c.Number120mmSlots >= selectedCPUCooler.RadiatorSlots) || (c.Number140mmSlots >= selectedCPUCooler.RadiatorSlots))
                                         .ToList();
                                 }
                                 if (radiatorFanSize == 140)
                                 {
+                                    // restrict for 140mm slots only
                                     bestCase = bestCase
                                         .Where(c => c.Number140mmSlots >= selectedCPUCooler.RadiatorSlots)
-                                        .OrderByDescending(c => c.Price)
                                         .ToList();
                                 }
                             }
                             // Always check for height
                             bestCase = bestCase
                                 .Where(c => c.MaxCPUFanHeight > selectedCPUCooler.Height)
-                                .OrderByDescending(c => c.Price)
                                 .ToList();
                         }
                     }
@@ -161,14 +164,12 @@ namespace PCBuildWeb.Services.Entities.Parts
                             {
                                 bestCase = bestCase
                                     .Where(c => c.Number120mmSlots >= selectedWC_Radiator.RadiatorSlots)
-                                    .OrderByDescending(c => c.Price)
                                     .ToList();
                             }
                             if (radiatorFanSize == 140)
                             {
                                 bestCase = bestCase
                                     .Where(c => c.Number140mmSlots >= selectedWC_Radiator.RadiatorSlots)
-                                    .OrderByDescending(c => c.Price)
                                     .ToList();
                             }
                         }
@@ -189,7 +190,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                             bestCase = bestCase
                                 .Where(c => c.PSUSizes.Contains(selectedPSU.PSUSize))
                                 .Where(c => c.MaxPsuLength > selectedPSU.Length)
-                                .OrderByDescending(c => c.Price)
                                 .ToList();
                         }
                     }
@@ -208,13 +208,12 @@ namespace PCBuildWeb.Services.Entities.Parts
                         {
                             bestCase = bestCase
                                 .Where(c => c.MaxGPULength > selectedGPU.Length)
-                                .OrderByDescending(c => c.Price)
                                 .ToList();
                         }
                     }
                 }
             }
-            
+
             return bestCase.FirstOrDefault();
         }
 

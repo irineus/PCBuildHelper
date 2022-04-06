@@ -45,9 +45,14 @@ namespace PCBuildWeb.Services.Entities.Parts
         {
             List<Motherboard> bestMobo = await FindAllAsync();
             bestMobo = bestMobo.Where(c => c.Price <= component.BudgetValue)
-                            .Where(c => c.LevelUnlock <= build.Parameter.CurrentLevel)
-                            .Where(c => c.LevelPercent <= build.Parameter.CurrentLevelPercent)
-                            .OrderByDescending(c => c.Price).ToList();
+                            .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
+                            .OrderByDescending(c => c.MoboChipset.Name) // higher chipset are better
+                            .ThenByDescending(c => c.Size.Id)
+                            .ThenByDescending(c => c.M2SlotsSupportingHeatsinks)
+                            .ThenByDescending(c => c.M2Slots)
+                            .ThenByDescending(c => c.MaxRamSpeed)
+                            .ThenByDescending(c => c.Price)
+                            .ToList();
 
             // Check for Manufator preference
             if (build.Parameter.PreferredManufacturer != null)
@@ -56,7 +61,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 {
                     bestMobo = bestMobo
                         .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .OrderByDescending(c => c.Price)
                         .ToList();
                 }
             }
@@ -77,7 +81,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                         {
                             bestMobo = bestMobo
                                 .Where(m => m.CPUSocket == selectedCPU.CPUSocket)
-                                .OrderByDescending(m => m.Price)
                                 .ToList();
                         }
                     }
@@ -87,7 +90,6 @@ namespace PCBuildWeb.Services.Entities.Parts
             {
                 bestMobo = bestMobo
                     .Where(m => m.RamSlots >= build.Parameter.MemoryChannels)
-                    .OrderByDescending(c => c.Price)
                     .ToList();
             }
 

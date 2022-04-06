@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class Motherboard : ComputerPart
+    public class Motherboard : ComputerPart, ICloneable
     {
         public Motherboard()
         {
@@ -62,5 +62,21 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int MinRamSpeed { get; set; }
+
+        public new object Clone()
+        {
+            var moboClone = (Motherboard)MemberwiseClone();
+            moboClone.MoboChipset = (MoboChipset)MoboChipset.Clone();
+            moboClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
+            moboClone.Size = (MoboSize)Size.Clone();
+            if (MultiGPUs is not null)
+            {
+                foreach (MultiGPU multiGPU in MultiGPUs)
+                {
+                    moboClone.MultiGPUs.Add((MultiGPU)multiGPU.Clone());
+                }
+            }
+            return moboClone;
+        }
     }
 }

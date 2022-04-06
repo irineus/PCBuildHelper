@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class CaseFan : ComputerPart
+    public class CaseFan : ComputerPart, ICloneable
     {
         public CaseFan()
         {
@@ -21,5 +21,18 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(0.01, 99.99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double? AirPressure { get; set; }
         public List<Case> Cases { get; set; } = new List<Case>();
+
+        public new object Clone()
+        {
+            var caseFanClone = (CaseFan)MemberwiseClone();
+            if (Cases is not null)
+            {
+                foreach (Case casePart in Cases)
+                {
+                    caseFanClone.Cases.Add((Case)casePart.Clone());
+                }
+            }
+            return caseFanClone;
+        }
     }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PCBuildWeb.Models.Entities.Parts
 {
-    public class Memory : ComputerPart
+    public class Memory : ComputerPart, ICloneable
     {
         [Display(Name = "Size (GB)")]
         [Required(ErrorMessage = "{0} is required")]
@@ -29,5 +29,11 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 5000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public double OverclockedBaseFrequency { get; set; }
+
+        public new object Clone()
+        {
+            var memoryClone = (Memory)MemberwiseClone();
+            return memoryClone;
+        }
     }
 }
