@@ -68,22 +68,26 @@ namespace PCBuildWeb.Services.Entities.Parts
                     .ToList();
             }
 
-            // Insert second GPU in Dual GPU Builds
-            // Check if theres any build part yet
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
+            // Check Dual GPU Requisites
+            if (build.Parameter.MustHaveDualGPU)
             {
-                // Check if theres a GPU in the build
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).FirstOrDefault();
-                if (preRequisiteComponent != null)
+                // Check if theres any build part yet
+                List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
+                if (componentsWithBuildParts.Any())
                 {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
+                    // Match Motherboard Dual GPU Support
+                    Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
+                    if (preRequisiteComponent != null)
                     {
-                        // Return a clone of the fisrt GPU to insert as the second one
-                        GPU selectedGPU = (GPU)preRequisiteComputerPart;
-                        return (GPU)selectedGPU.Clone();
+                        ComputerPart? preRequisiteComputerPart = null;
+                        preRequisiteComputerPart = preRequisiteComponent.BuildPart;
+                        if (preRequisiteComputerPart is not null)
+                        {
+                            Motherboard selectedMobo = (Motherboard)preRequisiteComputerPart;
+                            bestGPU = bestGPU
+                                    .Where(g => selectedMobo.MultiGPUs.Contains(g.MultiGPU))
+                                    .ToList();
+                        }
                     }
                 }
             }

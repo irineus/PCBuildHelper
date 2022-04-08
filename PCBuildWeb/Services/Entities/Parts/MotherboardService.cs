@@ -86,10 +86,20 @@ namespace PCBuildWeb.Services.Entities.Parts
                     }
                 }
             }
+            
+            // Check for Memory Channels support
             if (build.Parameter.MemoryChannels > 0)
             {
                 bestMobo = bestMobo
                     .Where(m => m.RamSlots >= build.Parameter.MemoryChannels)
+                    .ToList();
+            }
+
+            // Check for Dual GPU support if is required
+            if (build.Parameter.MustHaveDualGPU)
+            {
+                bestMobo = bestMobo
+                    .Where(m => m.MultiGPUs.Any())
                     .ToList();
             }
 

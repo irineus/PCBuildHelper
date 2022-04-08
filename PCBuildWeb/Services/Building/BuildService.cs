@@ -382,6 +382,11 @@ namespace PCBuildWeb.Services.Building
         {
             // Set default budget value for parts
             double budgetValue = build.Parameter.Budget * componentPriority.PartBudgetPercent;
+            // Set custom budget value for Dual GPU Builds
+            if ((componentPriority.PartType == PartType.GPU) && (build.Parameter.MustHaveDualGPU))
+            {
+                budgetValue = budgetValue / 2;
+            }
             // Set custom budget value for Memory
             if (componentPriority.PartType == PartType.Memory)
             {
@@ -400,6 +405,7 @@ namespace PCBuildWeb.Services.Building
                     budgetValue = caseFanBudget;
                 }
             }
+            
 
             return budgetValue;
         }
