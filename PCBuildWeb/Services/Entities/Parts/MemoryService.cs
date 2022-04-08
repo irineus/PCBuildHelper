@@ -33,20 +33,18 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best Memory for the build parameters
-        public async Task<Memory?> FindBestMemory(Build build, Component component)
+        public async Task<Memory?> FindBestMemory(Build build, double budgetValue)
         {
-            //Should consider multi-channel memory for budget and size of each chip
-            double memoryBudget = component.BudgetValue / build.Parameter.MemoryChannels;
+            // Check the size of each memory chip, considering the number of channels desired
             int? memorySize = build.Parameter.TargetMemorySize / build.Parameter.MemoryChannels;
             if (memorySize is null)
             {
                 memorySize = 0;
             }
-            component.BudgetValue = memoryBudget;
 
             List<Memory> bestMemory = await FindAllAsync();
             bestMemory = bestMemory
-                .Where(c => c.Price <= memoryBudget)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .Where(c => c.Size >= memorySize)
                 .OrderByDescending(c => c.Lighting.HasValue)

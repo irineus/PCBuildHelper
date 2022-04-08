@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PCBuildWeb.Models.Entities.Bases
 {
-    public abstract class ComputerPart : ICloneable
+    public class ComputerPart : ICloneable
     {
         [Key]
         public int Id { get; set; }
@@ -17,7 +17,7 @@ namespace PCBuildWeb.Models.Entities.Bases
         [EnumDataType(typeof(PartType))]
         public PartType PartType { get; set; }
         [ForeignKey("ManufacturerId")]
-        public Manufacturer Manufacturer { get; set; }
+        public Manufacturer? Manufacturer { get; set; }
         [Display(Name = "Manufacturer")]
         public int ManufacturerId { get; set; }
         [Display(Name = "Buy Price (new)")]
@@ -41,12 +41,15 @@ namespace PCBuildWeb.Models.Entities.Bases
         [EnumDataType(typeof(Color))]
         public Color? Lighting { get; set; }
         [Display(Name = "Commit Part?")]
-        public bool Commited { get; set; }
+
 
         public object Clone()
         {
             var computerPart = (ComputerPart)MemberwiseClone();
-            computerPart.Manufacturer = (Manufacturer)Manufacturer.Clone();
+            if (Manufacturer is not null)
+            {
+                computerPart.Manufacturer = (Manufacturer)Manufacturer.Clone();
+            }
             return computerPart;
         }
     }

@@ -37,11 +37,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best PSU for the build parameters
-        public async Task<PSU?> FindBestPSU(Build build, Component component)
+        public async Task<PSU?> FindBestPSU(Build build, double budgetValue)
         {
             List<PSU> bestPSU = await FindAllAsync();
             bestPSU = bestPSU
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Type) //Prioritize Modular
                 .ThenByDescending(c => c.Wattage) //Prioritize Power Output

@@ -35,11 +35,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         // Find best Custom WaterCooler CPU Block for the build
-        public async Task<WC_CPU_Block?> FindBestWCCPUBlock(Build build, Component component)
+        public async Task<WC_CPU_Block?> FindBestWCCPUBlock(Build build, double budgetValue)
         {
             List<WC_CPU_Block> bestWC_CPU_Block = await FindAllAsync();
             bestWC_CPU_Block = bestWC_CPU_Block
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Price)
                 .ToList();

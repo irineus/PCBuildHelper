@@ -17,7 +17,10 @@ namespace PCBuildWeb.Models.Entities.Properties
         public object Clone()
         {
             var gpuChipset = (GPUChipset)MemberwiseClone();
-            gpuChipset.ChipsetSeries = (GPUChipsetSeries)ChipsetSeries.Clone();
+            if(ChipsetSeries is not null)
+            {
+                gpuChipset.ChipsetSeries = (GPUChipsetSeries)ChipsetSeries.Clone();
+            }
             if (GPUs is not null)
             {
                 foreach (GPU gpu in GPUs)

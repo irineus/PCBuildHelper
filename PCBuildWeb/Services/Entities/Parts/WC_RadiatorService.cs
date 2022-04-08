@@ -32,11 +32,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         // Find best Custom WaterCooler Radiator for the build
-        public async Task<WC_Radiator?> FindBestWCRadiator(Build build, Component component)
+        public async Task<WC_Radiator?> FindBestWCRadiator(Build build, double budgetValue)
         {
             List<WC_Radiator> bestWC_Radiator = await FindAllAsync();
             bestWC_Radiator = bestWC_Radiator
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.AirFlow)
                 .ThenByDescending(c => c.Price)

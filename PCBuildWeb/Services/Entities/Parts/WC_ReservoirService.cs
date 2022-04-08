@@ -31,11 +31,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         // Find best Custom WaterCooler Reservoir for the build
-        public async Task<WC_Reservoir?> FindBestWCReservoir(Build build, Component component)
+        public async Task<WC_Reservoir?> FindBestWCReservoir(Build build, double budgetValue)
         {
             var bestWC_Reservoir = await FindAllAsync();
             bestWC_Reservoir = bestWC_Reservoir
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Price)
                 .ToList();

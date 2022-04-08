@@ -108,7 +108,10 @@ namespace PCBuildWeb.Models.Entities.Parts
         public new object Clone()
         {
             var gpuClone = (GPU)MemberwiseClone();
-            gpuClone.GPUChipset = (GPUChipset)GPUChipset.Clone();
+            if (GPUChipset is not null)
+            {
+                gpuClone.GPUChipset = (GPUChipset)GPUChipset.Clone();
+            }
             if (MultiGPU is not null)
             {
                 gpuClone.MultiGPU = (MultiGPU)MultiGPU.Clone();

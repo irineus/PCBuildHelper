@@ -12,59 +12,12 @@ namespace PCBuildWeb.Models.Building
         {
         }
 
-        public Parameter Parameter { get; set; }
+        public Parameter? Parameter { get; set; }
+        
+        public List<Component>? Components { get; set; }
 
-        public ICollection<Component> Components { get; set; }
-
-        public int GetTotalBasicScore()
-        {
-            return CalculateBuildTotalScore("basic");
-        }
-
-        public int GetTotalOCScore()
-        {
-            return CalculateBuildTotalScore("overclocked");
-        }
-
-        public int GetTotalRankingScore()
-        {
-            return CalculateBuildTotalScore("ranking");
-        }
-
-        //Calculate build total scores
-        private int CalculateBuildTotalScore(string scoreType)
-        {
-            int totalBasicScore = 0;
-            int totalOCScore = 0;
-            int totalRankingScore = 0;
-            if (Components.Any())
-            {
-                foreach (var component in Components.Where(c => c.BuildPart!.PartType == PartType.CPU || c.BuildPart.PartType == PartType.GPU).ToList())
-                {
-                    switch (component.BuildPart!.PartType)
-                    {
-                        case PartType.CPU:
-                            CPU cpuComponent = (CPU)component.BuildPart;
-                            totalBasicScore += cpuComponent.BasicCPUScore;
-                            totalOCScore += cpuComponent.OverclockedCPUScore;
-                            totalRankingScore += cpuComponent.RankingScore;
-                            break;
-                        case PartType.GPU:
-                            GPU gpuComponent = (GPU)component.BuildPart;
-                            totalBasicScore += gpuComponent.SingleGPUScore;
-                            totalOCScore += gpuComponent.OverclockedSingleGPUScore ?? 0;
-                            totalRankingScore += gpuComponent.RankingScore;
-                            break;
-                    }
-                }
-            }
-            return scoreType switch
-            {
-                "basic" => totalBasicScore,
-                "overclocked" => totalOCScore,
-                "ranking" => totalRankingScore,
-                _ => totalBasicScore,
-            };
-        }
+        public int TotalBasicScore { get; set; }
+        public int TotalOCScore { get; set; }
+        public int TotalRankingScore { get; set; }
     }
 }

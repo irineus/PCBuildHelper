@@ -35,11 +35,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best CPUCooler for the build parameters
-        public async Task<CPUCooler?> FindBestCPUCooler(Build build, Component component)
+        public async Task<CPUCooler?> FindBestCPUCooler(Build build, double budgetValue)
         {
             List<CPUCooler> bestCPUCooler = await FindAllAsync();
             bestCPUCooler = bestCPUCooler
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.AirFlow)
                 .ThenByDescending(c => c.WaterCooler) // After AirFlow, Priority to WaterCooler

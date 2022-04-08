@@ -51,11 +51,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best Case for the build parameters
-        public async Task<Case?> FindBestCase(Build build, Component component)
+        public async Task<Case?> FindBestCase(Build build, double budgetValue)
         {
             List<Case> bestCase = await FindAllAsync();
             bestCase = bestCase
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 
                 .OrderByDescending(c => (c.Number120mmSlots + c.Number140mmSlots))

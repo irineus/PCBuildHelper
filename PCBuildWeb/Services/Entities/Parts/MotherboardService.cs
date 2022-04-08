@@ -41,10 +41,10 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best Motherboard for the build parameters
-        public async Task<Motherboard?> FindBestMotherboard(Build build, Component component)
+        public async Task<Motherboard?> FindBestMotherboard(Build build, double budgetValue)
         {
             List<Motherboard> bestMobo = await FindAllAsync();
-            bestMobo = bestMobo.Where(c => c.Price <= component.BudgetValue)
+            bestMobo = bestMobo.Where(c => c.Price <= budgetValue)
                             .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                             .OrderByDescending(c => c.MoboChipset.Name) // higher chipset are better
                             .ThenByDescending(c => c.Size.Id)

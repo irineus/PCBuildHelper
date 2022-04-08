@@ -28,7 +28,10 @@ namespace PCBuildWeb.Models.Entities.Parts
         public new object Clone()
         {
             var psuClone = (PSU)MemberwiseClone();
-            psuClone.PSUSize = (PSUSize)PSUSize.Clone();
+            if (PSUSize is not null)
+            {
+                psuClone.PSUSize = (PSUSize)PSUSize.Clone();
+            }
             return psuClone;
         }
     }

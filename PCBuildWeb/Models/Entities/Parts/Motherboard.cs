@@ -62,13 +62,22 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Required(ErrorMessage = "{0} is required")]
         [Range(2000, 6000, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int MinRamSpeed { get; set; }
-
+        
         public new object Clone()
         {
             var moboClone = (Motherboard)MemberwiseClone();
-            moboClone.MoboChipset = (MoboChipset)MoboChipset.Clone();
-            moboClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
-            moboClone.Size = (MoboSize)Size.Clone();
+            if (MoboChipset is not null)
+            {
+                moboClone.MoboChipset = (MoboChipset)MoboChipset.Clone();
+            }
+            if (CPUSocket is not null)
+            {
+                moboClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
+            }
+            if (Size is not null)
+            {
+                moboClone.Size = (MoboSize)Size.Clone();
+            }
             if (MultiGPUs is not null)
             {
                 foreach (MultiGPU multiGPU in MultiGPUs)

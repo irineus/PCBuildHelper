@@ -95,8 +95,14 @@ namespace PCBuildWeb.Models.Entities.Parts
         public new object Clone()
         {
             var cpuClone = (CPU)MemberwiseClone();
-            cpuClone.Series = (CPUSeries)Series.Clone();
-            cpuClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
+            if (Series is not null)
+            {
+                cpuClone.Series = (CPUSeries)Series.Clone();
+            }
+            if (CPUSocket is not null)
+            {
+                cpuClone.CPUSocket = (CPUSocket)CPUSocket.Clone();
+            }
             return cpuClone;
         }
     }

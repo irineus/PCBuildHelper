@@ -36,11 +36,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best GPU for the build parameters
-        public async Task<GPU?> FindBestGPU(Build build, Component component)
+        public async Task<GPU?> FindBestGPU(Build build, double budgetValue)
         {
             List<GPU> bestGPU = await FindAllAsync();
             bestGPU = bestGPU
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.RankingScore)
                 .ThenByDescending(c => c.Price)

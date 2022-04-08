@@ -33,11 +33,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best storage for the build parameters
-        public async Task<Storage?> FindBestStorage(Build build, Component component)
+        public async Task<Storage?> FindBestStorage(Build build, double budgetValue)
         {
             List<Storage> bestStorage = await FindAllAsync();
             bestStorage = bestStorage
-                .Where(c => c.Price <= component.BudgetValue)
+                .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
                 .OrderByDescending(c => c.Speed)
                 .ThenByDescending(c => c.Size)
