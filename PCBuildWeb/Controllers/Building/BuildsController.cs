@@ -35,6 +35,7 @@ namespace PCBuildWeb.Controllers.Building
             ViewData["ManufacturerId"] = new SelectList(await _manufacturerService.FindAllAsync("--Select a Manufacturer--"), "Id", "Name");
             var memoryChannels = new[]
             {
+                new SelectListItem { Text = "--Select Channel Qty--", Value = "" },
                 new SelectListItem { Text = "Single Channel", Value = "1" },
                 new SelectListItem { Text = "Dual Channel", Value = "2" },
                 new SelectListItem { Text = "Quad Channel", Value = "4" }

@@ -11,12 +11,12 @@
 <form class="form-horizontal" asp-action="BuildResult">
     <fieldset>
         <legend></legend>
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="row">
                 <div class="col-lg-4">
                     <div class="form-group">
                         <label asp-for="Parameter!.CurrentLevel" class="col-lg-4 control-label"></label>
-                        <input asp-for="Parameter!.CurrentLevel" class="form-control" placeholder="Enter your current level" />
+                        <input asp-for="Parameter!.CurrentLevel" class="form-control" autofocus="autofocus" placeholder="Enter your current level" />
                         <span asp-validation-for="Parameter!.CurrentLevel" class="text-danger"></span>
                     </div>
                     <div class="form-group">
@@ -24,9 +24,9 @@
                         <div class="input-group mb-3">
                             <span class="input-group-text">$</span>
                             <input asp-for="Parameter!.Budget" class="form-control" placeholder="Enter build max budget" />
-                            <span class="input-group-text">.00</span>
-                            <span asp-validation-for="Parameter!.Budget" class="text-danger"></span>
+                            <span class="input-group-text">.00</span>                            
                         </div>
+                        <span asp-validation-for="Parameter!.Budget" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label asp-for="Parameter!.TargetCPUClock" class="col-lg-6 control-label"></label>

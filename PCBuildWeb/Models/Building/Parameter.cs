@@ -15,12 +15,12 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Level")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 50, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int CurrentLevel { get; set; }
+        public int? CurrentLevel { get; set; }
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "{0} is required")]
         [DataType(DataType.Currency)]
         [Range(1, 100000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int Budget { get; set; }
+        public int? Budget { get; set; }
         [ForeignKey("ManufacturerId")]
         public Manufacturer? PreferredManufacturer { get; set; }
         [Display(Name = "Preferred Manufacturer")]
@@ -40,7 +40,7 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Memory Channels")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 4, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int MemoryChannels { get; set; }
+        public int? MemoryChannels { get; set; }
         [Display(Name = "Must have AIO Watercooler?")]
         public bool MustHaveAIOCooler { get; set; }
         [Display(Name = "Must have Dual GPUs?")]

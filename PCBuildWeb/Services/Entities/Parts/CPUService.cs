@@ -43,17 +43,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer is not null)
-            {
-                if (bestCPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCPU = bestCPU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             // Check for Clock Target
             if (build.Parameter.TargetCPUClock is not null)
             {
@@ -67,8 +56,18 @@ namespace PCBuildWeb.Services.Entities.Parts
                 bestCPU = bestCPU.Where(c => c.MaxMemoryChannels >= build.Parameter.MemoryChannels).ToList();
             }
 
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer is not null)
+            {
+                if (bestCPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestCPU = bestCPU
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
+
             return bestCPU.FirstOrDefault();
-            
         }
 
         public bool CPUExists(int id)

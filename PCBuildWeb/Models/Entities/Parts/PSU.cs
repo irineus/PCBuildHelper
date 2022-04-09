@@ -21,7 +21,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [EnumDataType(typeof(PSUType))]
         public PSUType Type { get; set; }
         [ForeignKey("PSUSizeId")]
-        public PSUSize PSUSize { get; set; }
+        public PSUSize PSUSize { get; set; } = new PSUSize();
         [Display(Name = "Form Factor")]
         public int PSUSizeId { get; set; }
 

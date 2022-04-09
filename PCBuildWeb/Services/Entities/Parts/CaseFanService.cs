@@ -49,16 +49,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestCaseFan.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCaseFan = bestCaseFan
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
             var caseFreeSlots = await CheckFanFreeSlots(build, true);
             if ((caseFreeSlots.Fan120 > 0) && (caseFreeSlots.Fan140 > 0))
             {
@@ -87,6 +77,18 @@ namespace PCBuildWeb.Services.Entities.Parts
             {
                 return bestCaseFan.FirstOrDefault();
             }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestCaseFan.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestCaseFan = bestCaseFan
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
+
             return null;
         }
 

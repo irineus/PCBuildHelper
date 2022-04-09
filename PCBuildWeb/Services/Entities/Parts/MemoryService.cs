@@ -54,17 +54,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestMemory.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestMemory = bestMemory
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             // Check if there's any selected build part in the component list
             List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
             if (componentsWithBuildParts.Any())
@@ -86,6 +75,18 @@ namespace PCBuildWeb.Services.Entities.Parts
                     }
                 }
             }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestMemory.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestMemory = bestMemory
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
+
             return bestMemory.FirstOrDefault(); ;
         }
 

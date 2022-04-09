@@ -8,7 +8,7 @@ namespace PCBuildWeb.Models.Entities.Parts
     public class CPU : ComputerPart, ICloneable
     {
         [ForeignKey("SeriesId")]
-        public CPUSeries Series { get; set; }
+        public CPUSeries Series { get; set; } = new CPUSeries();
         [Display(Name = "CPU Series")]
         [Required(ErrorMessage = "{0} is required")]
         public int SeriesId { get; set; }
@@ -25,7 +25,7 @@ namespace PCBuildWeb.Models.Entities.Parts
         [Range(1, 99, ErrorMessage = "{0} should be a value between {1} and {2}")]
         public int Cores { get; set; }
         [ForeignKey("CPUSocketId")]
-        public CPUSocket CPUSocket { get; set; }
+        public CPUSocket CPUSocket { get; set; } = new CPUSocket();
         [Display(Name = "CPU Socket Type")]
         [Required(ErrorMessage = "{0} is required")]
         public int CPUSocketId { get; set; }

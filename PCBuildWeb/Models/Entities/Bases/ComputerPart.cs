@@ -12,7 +12,7 @@ namespace PCBuildWeb.Models.Entities.Bases
         [Display(Name = "Part Name/Model")]
         [Required(ErrorMessage = "{0} is required")]
         [StringLength(256, ErrorMessage = "{0} should have between {2} and {1} characters", MinimumLength = 1)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [Display(Name = "Part Type")]
         [EnumDataType(typeof(PartType))]
         public PartType PartType { get; set; }

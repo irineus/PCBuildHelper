@@ -40,7 +40,9 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
+            //The only other check is made at case
+
+            // Check for Manufacturer preference
             if (build.Parameter.PreferredManufacturer != null)
             {
                 if (bestWC_Reservoir.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
@@ -50,9 +52,7 @@ namespace PCBuildWeb.Services.Entities.Parts
                         .ToList();
                 }
             }
-
-            //The only other check is made at case
-
+            
             return bestWC_Reservoir.FirstOrDefault();
         }
 

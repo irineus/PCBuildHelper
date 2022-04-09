@@ -48,17 +48,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestCPUCooler.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCPUCooler = bestCPUCooler
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             // If MustHaveAIOCooler is selected, enforce WaterCooler. If not, it's yet possible to have a WC, but it's not mandatory
             bestCPUCooler = build.Parameter.MustHaveAIOCooler ?
                 bestCPUCooler.Where(c => c.WaterCooler).ToList() :
@@ -85,6 +74,18 @@ namespace PCBuildWeb.Services.Entities.Parts
                     }
                 }
             }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestCPUCooler.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestCPUCooler = bestCPUCooler
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
+
             return bestCPUCooler.FirstOrDefault();
         }
 

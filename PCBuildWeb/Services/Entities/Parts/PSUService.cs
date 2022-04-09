@@ -48,17 +48,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestPSU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestPSU = bestPSU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             int neededPower = 0;
             // Check if there's any selected build part in the component list
             List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
@@ -112,6 +101,17 @@ namespace PCBuildWeb.Services.Entities.Parts
             bestPSU = bestPSU
                 .Where(p => p.Wattage >= (neededPower * 1.1))
                 .ToList();
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestPSU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestPSU = bestPSU
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
 
             return bestPSU.FirstOrDefault();
         }

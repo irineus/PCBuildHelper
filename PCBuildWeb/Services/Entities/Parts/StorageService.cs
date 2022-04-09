@@ -44,18 +44,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestStorage.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestStorage = bestStorage
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
-            
             Storage? currentSelectedStorage = bestStorage.FirstOrDefault();
             if (currentSelectedStorage != null)
             {
@@ -98,6 +86,17 @@ namespace PCBuildWeb.Services.Entities.Parts
                             }
                         }
                     }
+                }
+            }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestStorage.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestStorage = bestStorage
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
                 }
             }
 

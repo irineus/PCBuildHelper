@@ -46,17 +46,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer is not null)
-            {
-                if (bestGPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestGPU = bestGPU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             // Check for Custom WC requisite
             bestGPU = build.Parameter.MustHaveCustomWC ? bestGPU.Where(c => c.IsWaterCooled).ToList() : bestGPU.Where(c => !c.IsWaterCooled).ToList();
 
@@ -91,6 +80,18 @@ namespace PCBuildWeb.Services.Entities.Parts
                     }
                 }
             }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer is not null)
+            {
+                if (bestGPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestGPU = bestGPU
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
+            }
+
             return bestGPU.FirstOrDefault();
         }
 

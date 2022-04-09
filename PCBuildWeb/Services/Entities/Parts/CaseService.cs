@@ -77,16 +77,6 @@ namespace PCBuildWeb.Services.Entities.Parts
             {
                 return null;
             }
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestCase.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCase = bestCase
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
 
             // Check if there's any selected build part in the component list
             List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
@@ -211,6 +201,17 @@ namespace PCBuildWeb.Services.Entities.Parts
                                 .ToList();
                         }
                     }
+                }
+            }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestCase.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestCase = bestCase
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
                 }
             }
 

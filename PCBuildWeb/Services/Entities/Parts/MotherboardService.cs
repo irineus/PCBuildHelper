@@ -54,17 +54,6 @@ namespace PCBuildWeb.Services.Entities.Parts
                             .ThenByDescending(c => c.Price)
                             .ToList();
 
-            // Check for Manufator preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestMobo.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestMobo = bestMobo
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-
             // Check if there's any selected build part in the component list
             List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
             if (componentsWithBuildParts.Any())
@@ -101,6 +90,17 @@ namespace PCBuildWeb.Services.Entities.Parts
                 bestMobo = bestMobo
                     .Where(m => m.MultiGPUs.Any())
                     .ToList();
+            }
+
+            // Check for Manufacturer preference
+            if (build.Parameter.PreferredManufacturer != null)
+            {
+                if (bestMobo.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
+                {
+                    bestMobo = bestMobo
+                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
+                        .ToList();
+                }
             }
 
             return bestMobo.FirstOrDefault();

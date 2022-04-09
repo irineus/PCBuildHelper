@@ -381,7 +381,7 @@ namespace PCBuildWeb.Services.Building
         public async Task<double> GetComponentBudget(Build build, Priority componentPriority)
         {
             // Set default budget value for parts
-            double budgetValue = build.Parameter.Budget * componentPriority.PartBudgetPercent;
+            double budgetValue = build.Parameter.Budget.Value * componentPriority.PartBudgetPercent;
             // Set custom budget value for Dual GPU Builds
             if ((componentPriority.PartType == PartType.GPU) && (build.Parameter.MustHaveDualGPU))
             {
@@ -390,7 +390,7 @@ namespace PCBuildWeb.Services.Building
             // Set custom budget value for Memory
             if (componentPriority.PartType == PartType.Memory)
             {
-                budgetValue = budgetValue / build.Parameter.MemoryChannels;
+                budgetValue /= build.Parameter.MemoryChannels.Value;
             }
             // Set custom budget value for case
             if (componentPriority.PartType == PartType.CaseFan)
