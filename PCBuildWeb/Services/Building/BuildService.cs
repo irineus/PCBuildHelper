@@ -2,6 +2,7 @@
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Models.Entities.Properties;
 using PCBuildWeb.Models.Enums;
 using PCBuildWeb.Services.Entities.Parts;
 using PCBuildWeb.Services.Entities.Properties;
@@ -24,12 +25,13 @@ namespace PCBuildWeb.Services.Building
         public readonly WC_RadiatorService _wcRadiatorService;
         public readonly WC_ReservoirService _wcReservoirService;
         public readonly ManufacturerService _manufacturerService;
+        public readonly BuildTypeService _buildTypeService;
 
         public BuildService(PCBuildWebContext context, CPUService cpuService, MotherboardService motherboardService,
             GPUService gpuService, CPUCoolerService cpuCoolerService, MemoryService memoryService, PSUService psuService,
             StorageService storageService, CaseFanService caseFanService, WC_CPU_BlockService wcCpuBlockService,
             WC_RadiatorService wcRadiatorService, WC_ReservoirService wcReservoirService, CaseService caseService,
-            ManufacturerService manufacturerService)
+            ManufacturerService manufacturerService, BuildTypeService buildTypeService)
         {
             _context = context;
             _cpuService = cpuService;
@@ -45,33 +47,36 @@ namespace PCBuildWeb.Services.Building
             _wcReservoirService = wcReservoirService;
             _caseService = caseService;
             _manufacturerService = manufacturerService;
+            _buildTypeService = buildTypeService;
         }
 
         public async Task<Build> BuildNewPC(Parameter parameter)
         {
             Build buildNewPC = new Build() { Parameter = parameter };
 
-            //Set default part priorities for the build type
-            buildNewPC.Parameter.PartPriorities = new BuildTypeDefaultPriority(buildNewPC.Parameter.BuildType).PartPriorities;
+            // Set Build Component Slots and Priorities for the BuildType
+            buildNewPC.Components = SetBuildComponentsDefaultProperties(buildNewPC.Parameter.BuildType.Id);
 
-            if (buildNewPC.Parameter.ManufacturerId > 0)
+            // Get the preferred manufacturer object
+            if ((buildNewPC.Parameter.ManufacturerId > 0) && (buildNewPC.Parameter.PreferredManufacturer is null))
             {
                 buildNewPC.Parameter.PreferredManufacturer = await _manufacturerService.FindByIdAsync(buildNewPC.Parameter.ManufacturerId.Value);
             }
-
-            buildNewPC.Components = new List<Component>();
-
-            foreach (Priority priorityComponent in buildNewPC.Parameter.PartPriorities.OrderBy(b => b.PartPriority))
+            
+            foreach (Component component in buildNewPC.Components.OrderBy(c => c.Priority))
             {
-                double budgetValue = await GetComponentBudget(buildNewPC, priorityComponent);
-
-                Component newComponent = await FindBestComponent(buildNewPC, priorityComponent.PartType, budgetValue);
+                // Get the default budget for the component (doesn't check for other types)
+                double budgetValue = await GetComponentBuildBudget(buildNewPC, component.PartType);
+                // Find the best component for the build
+                Component newComponent = await FindBestComponent(buildNewPC, component.PartType, budgetValue);
                 // Check if a part was found
                 if (newComponent.BuildPart is not null)
                 {
+                    // Update the component budget value
                     newComponent.BudgetValue = budgetValue;
-                    // Add new component in the build
-                    buildNewPC.Components.Add(newComponent);
+                    // Update the component with the part that was found
+                    int componentIndex = buildNewPC.Components.IndexOf(component);
+                    buildNewPC.Components[componentIndex].BuildPart = newComponent.BuildPart;
                 }
             }
 
@@ -130,10 +135,8 @@ namespace PCBuildWeb.Services.Building
                 throw new ArgumentNullException(nameof(reBuild.Components));
             }
 
-            //Set default part priorities for the build type
-            reBuild.Parameter.PartPriorities = new BuildTypeDefaultPriority(reBuild.Parameter.BuildType).PartPriorities;
-
-            if (reBuild.Parameter.ManufacturerId > 0)
+            // Get the preferred manufacturer object
+            if ((reBuild.Parameter.ManufacturerId > 0) && (reBuild.Parameter.PreferredManufacturer is null))
             {
                 reBuild.Parameter.PreferredManufacturer = await _manufacturerService.FindByIdAsync(reBuild.Parameter.ManufacturerId.Value);
             }
@@ -144,13 +147,12 @@ namespace PCBuildWeb.Services.Building
             // Create a new Component List for the rebuild parts
             List<Component> rebuildComponents = new List<Component>();
 
-            int index = 0;
             foreach (Component component in reBuild.Components.OrderBy(c => c.Priority))
             {
-                component.BuildPart = reBuild.Components[index].BuildPart;
                 if (component.BuildPart is not null)
                 {
-                    double originalPartBudget = await GetComponentBudget(reBuild, reBuild.Parameter.PartPriorities.Where(p => p.PartType == component.BuildPart.PartType).FirstOrDefault());
+                    // Get the component original budget taking into account the other parts of the build
+                    double originalPartBudget = await GetComponentBuildBudget(reBuild, component.PartType);
                     // Check if should find a new best part
                     if ((!component.Commited) && (component.BudgetValue != originalPartBudget))
                     {
@@ -170,7 +172,6 @@ namespace PCBuildWeb.Services.Building
                         rebuildComponents.Add((Component)component.Clone());
                     }
                 }
-                index++;
             }
 
             reBuild.Components = rebuildComponents;
@@ -249,7 +250,7 @@ namespace PCBuildWeb.Services.Building
             }
 
             // Set the build component priority
-            buildPC = SetComponentPriorities(buildPC);
+            //buildPC = SetComponentPriorities(buildPC);
 
             buildPC.Components = OrderBuildComponents(buildPC);
 
@@ -349,27 +350,30 @@ namespace PCBuildWeb.Services.Building
                 _ => totalBasicScore,
             };
         }
-
-        private Build SetComponentPriorities(Build build)
+        
+        private List<Component> SetBuildComponentsDefaultProperties(int buildTypeId)
         {
-            if (build is null)
+            //if (buildType is null)
+            //{
+            //    throw new ArgumentNullException(nameof(buildType));
+            //}
+
+            List<BuildType> buildTypeComponents = new List<BuildType>();
+            List<Component> components = new List<Component>();
+
+            foreach (var part in buildTypeComponents)
             {
-                throw new ArgumentNullException(nameof(build));
-            }
-            if (build.Parameter is null)
-            {
-                throw new ArgumentNullException(nameof(build));
-            }
-            foreach (var part in build.Parameter.PartPriorities)
-            {
-                // Get the components of the type in the build
-                var components = build.Components.Where(c => c.BuildPart!.PartType == part.PartType).ToList();
-                foreach (var component in components)
+                components.Add(new Component()
                 {
-                    component.Priority = part.PartPriority;
-                }
+                    BuildPart = null,
+                    BudgetValue = 0,
+                    Commited = false,
+                    Priority = part.Priority,
+                    PartType = part.PartType
+                });
             }
-            return build;
+
+            return components;
         }
 
         //Order build components by priority
@@ -378,36 +382,64 @@ namespace PCBuildWeb.Services.Building
             return build.Components.OrderBy(c => c.Priority).ToList();
         }
 
-        public async Task<double> GetComponentBudget(Build build, Priority componentPriority)
+        // Get the build component budget, witch is eventualy based in other parts of the build
+        public async Task<double> GetComponentBuildBudget(Build build, PartType partType)
         {
-            // Set default budget value for parts
-            double budgetValue = build.Parameter.Budget.Value * componentPriority.PartBudgetPercent;
+            if (build is null)
+            {
+                throw new ArgumentNullException(nameof(build));
+            }
+            if (build.Parameter is null)
+            {
+                throw new ArgumentNullException(nameof(build.Parameter));
+            }
+            // Get default build budget
+            int defaultBuildBudget = build.Parameter.Budget;
+            // Get component part budget percent
+            double componentPartBudgetPercent = GetComponentPartDefaultBudgetPercent(build.Parameter, partType);
+            // Get default budget value for parts
+            double budgetValue = defaultBuildBudget * componentPartBudgetPercent;
             // Set custom budget value for Dual GPU Builds
-            if ((componentPriority.PartType == PartType.GPU) && (build.Parameter.MustHaveDualGPU))
+            if ((partType == PartType.GPU) && (build.Parameter.MustHaveDualGPU))
             {
                 budgetValue = budgetValue / 2;
             }
             // Set custom budget value for Memory
-            if (componentPriority.PartType == PartType.Memory)
+            if (partType == PartType.Memory)
             {
-                budgetValue /= build.Parameter.MemoryChannels.Value;
+                budgetValue /= build.Parameter.MemoryChannels;
             }
             // Set custom budget value for case
-            if (componentPriority.PartType == PartType.CaseFan)
+            if (partType == PartType.CaseFan)
             {
-                // For budget purposes, check for slots without considering others fans perviosly selected for build
-                var caseFreeSlots = await _caseFanService.CheckFanFreeSlots(build, false);
-                // Distribute the budget for case fans for the possible ammount usable in the build
-                var caseFanBudget = budgetValue;
-                if ((caseFreeSlots.Fan120 + caseFreeSlots.Fan140) > 0)
+                // Only get fan budget if there's a pre-selected case
+                if (build.Components.Any(c => c.BuildPart!.PartType == PartType.Case))
                 {
-                    caseFanBudget = budgetValue / (caseFreeSlots.Fan120 + caseFreeSlots.Fan140);
-                    budgetValue = caseFanBudget;
+                    // For budget purposes, check for slots without considering others fans perviosly selected for build
+                    var caseFreeSlots = await _caseFanService.CheckFanFreeSlots(build, false);
+                    // Distribute the budget for case fans for the possible ammount usable in the build
+                    var caseFanBudget = budgetValue;
+                    if ((caseFreeSlots.Fan120 + caseFreeSlots.Fan140) > 0)
+                    {
+                        caseFanBudget = budgetValue / (caseFreeSlots.Fan120 + caseFreeSlots.Fan140);
+                        budgetValue = caseFanBudget;
+                    }
                 }
-            }
-            
+            }            
 
             return budgetValue;
+        }
+
+        private static double GetComponentPartDefaultBudgetPercent(string buildName, PartType partType)
+        {
+            if (buildName is null)
+            {
+                throw new ArgumentNullException(nameof(buildName));
+            }
+            
+            double partDefaultBudgetPercent = _buildTypeService.FindBuildTypeComponentsAsync(buildName).Result.FirstOrDefault(c => c.PartType == partType).Priority;
+
+            return partDefaultBudgetPercent;
         }
     }
 }

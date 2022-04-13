@@ -108,5 +108,7 @@ namespace PCBuildWeb.Data
 
             #endregion
         }
+
+        public DbSet<PCBuildWeb.Models.Entities.Properties.BuildType> BuildType { get; set; }
     }
 }

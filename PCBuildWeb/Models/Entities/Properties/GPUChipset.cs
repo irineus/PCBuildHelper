@@ -21,13 +21,13 @@ namespace PCBuildWeb.Models.Entities.Properties
             {
                 gpuChipset.ChipsetSeries = (GPUChipsetSeries)ChipsetSeries.Clone();
             }
-            if (GPUs is not null)
-            {
-                foreach (GPU gpu in GPUs)
-                {
-                    gpuChipset.GPUs.Add((GPU)gpu.Clone());
-                }
-            }
+            //if (GPUs is not null)
+            //{
+            //    foreach (GPU gpu in GPUs)
+            //    {
+            //        gpuChipset.GPUs.Add((GPU)gpu.Clone());
+            //    }
+            //}
             return gpuChipset;
         }
     }

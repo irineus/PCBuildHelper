@@ -44,6 +44,7 @@ builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<WC_CPU_BlockService>();
 builder.Services.AddScoped<WC_RadiatorService>();
 builder.Services.AddScoped<WC_ReservoirService>();
+builder.Services.AddScoped<BuildTypeService>();
 builder.Services.AddScoped<ManufacturerService>();
 
 // Add services to the container.

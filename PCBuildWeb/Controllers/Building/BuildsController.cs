@@ -41,10 +41,10 @@ namespace PCBuildWeb.Controllers.Building
                 new SelectListItem { Text = "Quad Channel", Value = "4" }
             };
             ViewData["MemoryChannels"] = new SelectList(memoryChannels, "Value", "Text");
-            var buildTypeList = Enum.GetValues(typeof(BuildTypeEnum))
-                .Cast<BuildTypeEnum>()
-                .Select(x => new SelectListItem { Text = x.ToString(), Value = ((int)x).ToString() });
-            ViewData["BuildType"] = buildTypeList;
+            //var buildTypeList = Enum.GetValues(typeof(BuildType))
+            //    .Cast<BuildType>()
+            //    .Select(x => new SelectListItem { Text = x.ToString(), Value = ((int)x).ToString() });
+            ViewData["BuildType"] = null; // buildTypeList;
             Build build = new Build()
             {
                 Parameter = new Parameter()
@@ -69,10 +69,10 @@ namespace PCBuildWeb.Controllers.Building
                     new SelectListItem { Text = "Quad Channel", Value = "4" }
                 };
                 ViewData["MemoryChannels"] = new SelectList(memoryChannels, "Value", "Text");
-                var buildTypeList = Enum.GetValues(typeof(BuildTypeEnum))
-                    .Cast<BuildTypeEnum>()
-                    .Select(x => new SelectListItem { Text = x.ToString(), Value = ((int)x).ToString() });
-                ViewData["BuildType"] = buildTypeList;
+                //var buildTypeList = Enum.GetValues(typeof(BuildType))
+                //    .Cast<BuildType>()
+                //    .Select(x => new SelectListItem { Text = x.ToString(), Value = ((int)x).ToString() });
+                ViewData["BuildType"] = null; // buildTypeList;
                 RedirectToAction(nameof(Build));
             }
             if (build.Parameter is null)

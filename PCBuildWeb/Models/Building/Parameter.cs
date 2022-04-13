@@ -15,12 +15,12 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Level")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 50, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int? CurrentLevel { get; set; }
+        public int CurrentLevel { get; set; }
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "{0} is required")]
         [DataType(DataType.Currency)]
         [Range(1, 100000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int? Budget { get; set; }
+        public int Budget { get; set; }
         [ForeignKey("ManufacturerId")]
         public Manufacturer? PreferredManufacturer { get; set; }
         [Display(Name = "Preferred Manufacturer")]
@@ -40,7 +40,7 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Memory Channels")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 4, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int? MemoryChannels { get; set; }
+        public int MemoryChannels { get; set; }
         [Display(Name = "Must have AIO Watercooler?")]
         public bool MustHaveAIOCooler { get; set; }
         [Display(Name = "Must have Dual GPUs?")]
@@ -51,8 +51,9 @@ namespace PCBuildWeb.Models.Building
         public bool EnableOpenBench { get; set; }
         [Display(Name = "Building Type")]
         [BindProperty]
-        [EnumDataType(typeof(BuildTypeEnum))]
-        public BuildTypeEnum BuildType { get; set; }
-        public List<Priority> PartPriorities { get; set; } = new List<Priority>();
+        [EnumDataType(typeof(BuildType))]
+        public BuildType BuildType { get; set; }
+        //Priority should reflect on component list, not on the parameter list
+        //public List<Priority> PartPriorities { get; set; } = new List<Priority>();
     }
 }

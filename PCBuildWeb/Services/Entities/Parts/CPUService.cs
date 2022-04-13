@@ -2,10 +2,12 @@
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Parts;
+using PCBuildWeb.Utils.Filters;
+using PCBuildWeb.Services.Interfaces;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class CPUService
+    public class CPUService : IBuildPartService<CPU>
     {
         private readonly PCBuildWebContext _context;
 
@@ -35,6 +37,11 @@ namespace PCBuildWeb.Services.Entities.Parts
         //Find best CPU for the build parameters
         public async Task<CPU?> FindBestCPU(Build build, double budgetValue)
         {
+            if (build.Parameter is null) 
+                throw new ArgumentNullException(nameof(build.Parameter));
+            if (build.Components is null) 
+                throw new ArgumentNullException(nameof(build.Components));
+
             List<CPU> bestCPU = await FindAllAsync();
             bestCPU = bestCPU
                 .Where(c => c.Price <= budgetValue)
@@ -44,28 +51,13 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ToList();
 
             // Check for Clock Target
-            if (build.Parameter.TargetCPUClock is not null)
-            {
-                bestCPU = bestCPU
-                    .Where(c => c.OverclockedFrequency >= build.Parameter.TargetCPUClock)
-                    .ToList();
-            }
+            bestCPU = build.Parameter.TargetCPUClock is null ? bestCPU : BuildFilters.SimpleFilter(bestCPU, c => c.OverclockedFrequency >= build.Parameter.TargetCPUClock).ToList();
 
-            if (build.Parameter.MemoryChannels > 0)
-            {
-                bestCPU = bestCPU.Where(c => c.MaxMemoryChannels >= build.Parameter.MemoryChannels).ToList();
-            }
+            // Check for Memory Channels
+            bestCPU = BuildFilters.SimpleFilter(bestCPU, c => c.MaxMemoryChannels >= build.Parameter.MemoryChannels).ToList();
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer is not null)
-            {
-                if (bestCPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCPU = bestCPU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestCPU = BuildFilters.IfAnyFilter(bestCPU, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestCPU.FirstOrDefault();
         }
