@@ -38,6 +38,8 @@ namespace PCBuildWeb.Data
         public DbSet<WC_CPU_Block> WC_CPU_Block { get; set; }
         public DbSet<WC_Radiator> WC_Radiator { get; set; }
         public DbSet<WC_Reservoir> WC_Reservoir { get; set; }
+        public DbSet<BuildType> BuildType { get; set; }
+        public DbSet<BuildTypeStructure> BuildTypeStructure { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -108,7 +110,5 @@ namespace PCBuildWeb.Data
 
             #endregion
         }
-
-        public DbSet<PCBuildWeb.Models.Entities.Properties.BuildType> BuildType { get; set; }
     }
 }

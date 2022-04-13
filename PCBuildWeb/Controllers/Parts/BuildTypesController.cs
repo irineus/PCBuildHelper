@@ -1,10 +1,5 @@
 ﻿#nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Entities.Properties;
@@ -57,7 +52,7 @@ namespace PCBuildWeb.Controllers.Parts
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PartType,Priority,BudgetPercent,Id,Name")] BuildType buildType)
+        public async Task<IActionResult> Create([Bind("Id,Name")] BuildType buildType)
         {
             if (ModelState.IsValid)
             {
@@ -76,7 +71,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var buildType = await _context.BuildType.FindAsync(id);
+            var buildType = await _buildTypeService.FindByIdAsync(id.Value);
             if (buildType == null)
             {
                 return NotFound();
@@ -89,7 +84,7 @@ namespace PCBuildWeb.Controllers.Parts
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PartType,Priority,BudgetPercent,Id,Name")] BuildType buildType)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] BuildType buildType)
         {
             if (id != buildType.Id)
             {
@@ -127,8 +122,7 @@ namespace PCBuildWeb.Controllers.Parts
                 return NotFound();
             }
 
-            var buildType = await _context.BuildType
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var buildType = await _buildTypeService.FindByIdAsync(id.Value);
             if (buildType == null)
             {
                 return NotFound();
@@ -142,12 +136,10 @@ namespace PCBuildWeb.Controllers.Parts
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var buildType = await _context.BuildType.FindAsync(id);
+            var buildType = await _buildTypeService.FindByIdAsync(id);
             _context.BuildType.Remove(buildType);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
-
     }
 }

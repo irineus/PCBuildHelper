@@ -28,16 +28,6 @@ namespace PCBuildWeb.Services.Entities.Properties
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<List<string>> FindDistinctBuildTypes()
-        {
-            return await _context.BuildType.Select(b => b.Name).Distinct().ToListAsync();
-        }
-
-        public async Task<List<BuildType>> FindBuildTypeComponentsAsync(string buildName)
-        {
-            return await _context.BuildType.Where(b => b.Name == buildName).ToListAsync();
-        }
-
         public bool BuildTypeExists(int id)
         {
             return _context.BuildType.Any(e => e.Id == id);

@@ -26,12 +26,13 @@ namespace PCBuildWeb.Services.Building
         public readonly WC_ReservoirService _wcReservoirService;
         public readonly ManufacturerService _manufacturerService;
         public readonly BuildTypeService _buildTypeService;
+        public readonly BuildTypeStructureService _buildTypeStructureService;
 
         public BuildService(PCBuildWebContext context, CPUService cpuService, MotherboardService motherboardService,
             GPUService gpuService, CPUCoolerService cpuCoolerService, MemoryService memoryService, PSUService psuService,
             StorageService storageService, CaseFanService caseFanService, WC_CPU_BlockService wcCpuBlockService,
             WC_RadiatorService wcRadiatorService, WC_ReservoirService wcReservoirService, CaseService caseService,
-            ManufacturerService manufacturerService, BuildTypeService buildTypeService)
+            ManufacturerService manufacturerService, BuildTypeService buildTypeService, BuildTypeStructureService buildTypeStructureService)
         {
             _context = context;
             _cpuService = cpuService;
@@ -48,6 +49,7 @@ namespace PCBuildWeb.Services.Building
             _caseService = caseService;
             _manufacturerService = manufacturerService;
             _buildTypeService = buildTypeService;
+            _buildTypeStructureService = buildTypeStructureService;
         }
 
         public async Task<Build> BuildNewPC(Parameter parameter)
@@ -55,7 +57,7 @@ namespace PCBuildWeb.Services.Building
             Build buildNewPC = new Build() { Parameter = parameter };
 
             // Set Build Component Slots and Priorities for the BuildType
-            buildNewPC.Components = SetBuildComponentsDefaultProperties(buildNewPC.Parameter.BuildType.Id);
+            buildNewPC.Components = await SetBuildComponentsDefaultProperties(parameter.BuildType);
 
             // Get the preferred manufacturer object
             if ((buildNewPC.Parameter.ManufacturerId > 0) && (buildNewPC.Parameter.PreferredManufacturer is null))
@@ -351,14 +353,14 @@ namespace PCBuildWeb.Services.Building
             };
         }
         
-        private List<Component> SetBuildComponentsDefaultProperties(int buildTypeId)
+        private async Task<List<Component>> SetBuildComponentsDefaultProperties(BuildType buildType)
         {
-            //if (buildType is null)
-            //{
-            //    throw new ArgumentNullException(nameof(buildType));
-            //}
+            if (buildType is null)
+            {
+                throw new ArgumentNullException(nameof(buildType));
+            }
 
-            List<BuildType> buildTypeComponents = new List<BuildType>();
+            List<BuildTypeStructure> buildTypeComponents = await _buildTypeStructureService.FindBuildTypeComponentsAsync(buildType);
             List<Component> components = new List<Component>();
 
             foreach (var part in buildTypeComponents)
@@ -369,7 +371,8 @@ namespace PCBuildWeb.Services.Building
                     BudgetValue = 0,
                     Commited = false,
                     Priority = part.Priority,
-                    PartType = part.PartType
+                    PartType = part.PartType,
+                    BudgetPercent = part.BudgetPercent
                 });
             }
 
@@ -396,7 +399,7 @@ namespace PCBuildWeb.Services.Building
             // Get default build budget
             int defaultBuildBudget = build.Parameter.Budget;
             // Get component part budget percent
-            double componentPartBudgetPercent = GetComponentPartDefaultBudgetPercent(build.Parameter, partType);
+            double componentPartBudgetPercent = await GetComponentPartDefaultBudgetPercent(build.BuildType, partType);
             // Get default budget value for parts
             double budgetValue = defaultBuildBudget * componentPartBudgetPercent;
             // Set custom budget value for Dual GPU Builds
@@ -429,17 +432,22 @@ namespace PCBuildWeb.Services.Building
 
             return budgetValue;
         }
-
-        private static double GetComponentPartDefaultBudgetPercent(string buildName, PartType partType)
+        
+        public async Task<double> GetComponentPartDefaultBudgetPercent(BuildType buildType, PartType partType)
         {
-            if (buildName is null)
+            if (buildType is null)
             {
-                throw new ArgumentNullException(nameof(buildName));
+                throw new ArgumentNullException(nameof(buildType));
             }
-            
-            double partDefaultBudgetPercent = _buildTypeService.FindBuildTypeComponentsAsync(buildName).Result.FirstOrDefault(c => c.PartType == partType).Priority;
 
-            return partDefaultBudgetPercent;
+            BuildTypeStructure? componentType = await _buildTypeStructureService.FindBuildTypeStructureComponentAsync(buildType, partType);
+
+            if (componentType is null)
+            {
+                throw new ArgumentNullException(nameof(componentType));
+            }
+
+            return componentType.BudgetPercent;
         }
     }
 }
