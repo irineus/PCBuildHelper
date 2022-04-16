@@ -4,18 +4,18 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class StorageService
+    public class StorageService : IBuildPartService<Storage>
     {
         private readonly PCBuildWebContext _context;
-        private readonly MotherboardService _motherboardService;
 
-        public StorageService(PCBuildWebContext context, MotherboardService motherboardService)
+        public StorageService(PCBuildWebContext context)
         {
             _context = context;
-            _motherboardService = motherboardService;
         }
 
         public async Task<List<Storage>> FindAllAsync()
@@ -33,7 +33,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best storage for the build parameters
-        public async Task<Storage?> FindBestStorage(Build build, double budgetValue)
+        public async Task<Storage?> FindBestStorage(Build build, double budgetValue, MotherboardService _motherboardService)
         {
             List<Storage> bestStorage = await FindAllAsync();
             bestStorage = bestStorage
@@ -44,61 +44,36 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            Storage? currentSelectedStorage = bestStorage.FirstOrDefault();
-            if (currentSelectedStorage != null)
+            Motherboard? prerequisiteMobo = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Storage, PartType.Motherboard, _motherboardService);
+            if (prerequisiteMobo is not null)
             {
-                //If the best storage is a M.2, should match mobo support or else downgrade
-                if (currentSelectedStorage.Type == StorageType.M_2)
+                Storage? currentSelectedStorage = bestStorage.FirstOrDefault();
+                if (currentSelectedStorage != null)
                 {
-                    // Check if there's any selected build part in the component list
-                    List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-                    if (componentsWithBuildParts.Any())
+                    //If the best storage at this point is a M.2, should match mobo support or else downgrade
+                    if (currentSelectedStorage.Type == StorageType.M_2)
                     {
-                        Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
-                        if (preRequisiteComponent != null)
+                        // No support for M.2 from Motherboard => downgrade type
+                        if (prerequisiteMobo.M2Slots == 0)
                         {
-                            ComputerPart? preRequisiteComputerPart = null;
-                            preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                            if (preRequisiteComputerPart != null)
+                            bestStorage = BuildFilters.SimpleFilter(bestStorage, s => s.Type != StorageType.M_2).ToList();
+                        }  
+                        else
+                        {
+                            // Mobo supports M.2. Check for heatsink support
+                            if (prerequisiteMobo.M2SlotsSupportingHeatsinks == 0)
                             {
-                                Motherboard? selectedMobo = await _motherboardService.FindByIdAsync(preRequisiteComputerPart.Id);
-                                if (selectedMobo != null)
-                                {
-                                    if (selectedMobo.M2Slots == 0)
-                                    {
-                                        // No M.2 support => downgrade type
-                                        bestStorage = bestStorage
-                                            .Where(s => s.Type != StorageType.M_2)
-                                            .ToList();
-                                    }
-                                    else
-                                    {
-                                        // Mobo supports M.2. Check for heatsink support
-                                        if (selectedMobo.M2SlotsSupportingHeatsinks == 0)
-                                        {
-                                            // Remove Heatsinked M.2 from list
-                                            bestStorage = bestStorage
-                                                .Where(s => !s.IncludesHeatsink)
-                                                .ToList();
-                                        }
-                                    }
-                                }
+                                // Remove Heatsinked M.2 from list
+                                bestStorage = BuildFilters.SimpleFilter(bestStorage, s => !s.IncludesHeatsink).ToList();
                             }
-                        }
-                    }
+                        }                            
+                    } 
                 }
             }
+            
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestStorage.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestStorage = bestStorage
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestStorage = BuildFilters.IfAnyFilter(bestStorage, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestStorage.FirstOrDefault();
         }

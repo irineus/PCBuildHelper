@@ -22,12 +22,19 @@ namespace PCBuildWeb.Services.Entities.Properties
             return await _context.BuildType.ToListAsync();
         }
 
+        public async Task<List<BuildType>> FindAllAsync(string defaultValue)
+        {
+            var buildTypeList = await _context.BuildType.ToListAsync();
+            //buildTypeList.Insert(0, new BuildType { Id = 0, Name = defaultValue });
+            return buildTypeList;
+        }
+
         public async Task<BuildType?> FindByIdAsync(int id)
         {
             return await _context.BuildType
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
-
+        
         public bool BuildTypeExists(int id)
         {
             return _context.BuildType.Any(e => e.Id == id);

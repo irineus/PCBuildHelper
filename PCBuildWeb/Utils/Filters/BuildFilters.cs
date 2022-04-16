@@ -1,9 +1,7 @@
 ﻿using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
-using PCBuildWeb.Models.Entities.Properties;
 using PCBuildWeb.Models.Enums;
 using PCBuildWeb.Services.Interfaces;
-using System.Linq.Expressions;
 
 namespace PCBuildWeb.Utils.Filters
 {
@@ -21,6 +19,11 @@ namespace PCBuildWeb.Utils.Filters
             return collection.Where(filter).ToList();
         }
 
+        public static ICollection<T> MultipleFilter<T>(ICollection<T> collection, Func<T, bool> filter1, Func<T, bool> filter2)
+        {
+            return collection.Where(filter1).Where(filter2).ToList();
+        }
+
 
         /// <summary>
         /// Filter a collection of parts only if there's at least one part with the given filter criteria. If not, just return the original collection.
@@ -29,8 +32,12 @@ namespace PCBuildWeb.Utils.Filters
         /// <param name="collection">Collection of Parts</param>
         /// <param name="filter">Filter criteria</param>
         /// <returns>Colletcion of filtered parts (if there's at least one)</returns>
-        public static ICollection<T> IfAnyFilter<T>(ICollection<T> collection, Func<T, bool> filter)
+        public static ICollection<T> IfAnyFilter<T>(ICollection<T>? collection, Func<T, bool> filter)
         {
+            if (collection is null)
+            {
+                return new List<T>();
+            }
             if (collection.Where(filter).Any())
             {
                 return collection.Where(filter).ToList();
@@ -46,7 +53,7 @@ namespace PCBuildWeb.Utils.Filters
         /// <param name="prerequisiteType">Type of the prerequisite component</param>
         /// <param name="serviceContext">Context service of the prerequisite componente</param>
         /// <returns></returns>
-        public static async Task<T?> FindPrerequisitePartAsync<T>(List<Component> components, PartType currentPartType, PartType prerequisiteType, IBuildPartService<T> serviceContext)
+        public static async Task<T?> FindPrerequisitePartAsync<T>(List<Component>? components, PartType currentPartType, PartType prerequisiteType, IBuildPartService<T> serviceContext)
         {
             if (components is not null)
             {
@@ -72,6 +79,33 @@ namespace PCBuildWeb.Utils.Filters
                             }
                         }
                     }
+                }
+            }
+            return default;
+        }
+
+        public static async Task<T?> FindComponentPartAsync<T>(List<Component>? components, PartType componentType, IBuildPartService<T> serviceContext)
+        {
+            if (components is not null)
+            {
+                // Get both components
+                Component? preRequisiteComponent = components.Where(c => c.PartType == componentType).FirstOrDefault();
+                // Both should have a value
+                if (preRequisiteComponent is not null)
+                {
+                    // Get the prerequisite part with the specific data for that part type
+                    ComputerPart? buildPart = preRequisiteComponent.BuildPart;
+                    if (buildPart is not null)
+                    {
+                        // Get the concrete prerequisite part from the database
+                        T? selectedPart = await serviceContext.FindByIdAsync(buildPart.Id);
+                        if (selectedPart is not null)
+                        {
+                            // Return the concrete part for the query
+                            return selectedPart;
+                        }
+                    }
+
                 }
             }
             return default;

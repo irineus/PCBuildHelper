@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PCBuildWeb.Models.Entities.Properties;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Entities.Properties;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,12 +16,12 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Level")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 50, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int CurrentLevel { get; set; }
+        public int? CurrentLevel { get; set; }
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "{0} is required")]
         [DataType(DataType.Currency)]
         [Range(1, 100000, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int Budget { get; set; }
+        public int? Budget { get; set; }
         [ForeignKey("ManufacturerId")]
         public Manufacturer? PreferredManufacturer { get; set; }
         [Display(Name = "Preferred Manufacturer")]
@@ -49,11 +50,11 @@ namespace PCBuildWeb.Models.Building
         public bool MustHaveCustomWC { get; set; }
         [Display(Name = "Enable Open Bench Cases?")]
         public bool EnableOpenBench { get; set; }
+        [ForeignKey("BuildTypeId")]
+        public BuildType? BuildType { get; set; }
         [Display(Name = "Building Type")]
-        [BindProperty]
-        [EnumDataType(typeof(BuildType))]
-        public BuildType BuildType { get; set; }
-        //Priority should reflect on component list, not on the parameter list
-        //public List<Priority> PartPriorities { get; set; } = new List<Priority>();
+        [Required(ErrorMessage = "{0} is required")]
+        [Range(1, 999, ErrorMessage = "{0} is required")]
+        public int BuildTypeId { get; set; }
     }
 }

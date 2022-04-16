@@ -8,15 +8,6 @@ namespace PCBuildWeb.Models.Entities.Properties
 {
     public class BuildTypeStructure : PartProperty, ICloneable, IPriority
     {
-        //[Display(Name = "Usual")]
-        //Usual = 1,
-        //[Display(Name = "Dual GPU")]
-        //DualGPU = 2,
-        //[Display(Name = "Usual with AIO")]
-        //AIO = 3,
-        //[Display(Name = "Custom Watercooled")]
-        //CustomWC = 4,
-
         [ForeignKey("BuildTypeId")]
         public BuildType BuildType { get; set; } = new BuildType();
         [Display(Name = "Build Type")]

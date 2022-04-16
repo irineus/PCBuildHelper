@@ -22,7 +22,7 @@ namespace PCBuildWeb.Services.Entities.Properties
             return await _context.Manufacturer.ToListAsync();
         }
 
-        public async Task<List<Manufacturer>> FindAllAsync(string defaultValue)
+        public async Task<List<Manufacturer>> FindAllAsync(string? defaultValue)
         {
             var manufaturerList = await _context.Manufacturer.ToListAsync();
             manufaturerList.Insert(0, new Manufacturer { Id = 0, Name = defaultValue });

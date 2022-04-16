@@ -13,8 +13,8 @@ namespace PCBuildWeb.Models.Building
         }
 
         public Parameter Parameter { get; set; } = new Parameter();
-        public List<Component> Components { get; set; } = new List<Component>();
-        public BuildType BuildType { get; set; }
+        public List<Component>? Components { get; set; }
+        public BuildType? BuildType { get; set; }
         public int TotalBasicScore { get; set; }
         public int TotalOCScore { get; set; }
         public int TotalRankingScore { get; set; }

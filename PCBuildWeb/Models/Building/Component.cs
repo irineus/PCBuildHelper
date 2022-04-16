@@ -11,6 +11,7 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Budget")]
         public double BudgetValue { get; set; }
         public bool Commited { get; set; }
+        public bool Updated { get; set; }
         public int Priority { get; set; }
         public PartType PartType { get; set; }
         public double BudgetPercent { get; set; }

@@ -4,18 +4,18 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class WC_CPU_BlockService
+    public class WC_CPU_BlockService : IBuildPartService<WC_CPU_Block>
     {
         private readonly PCBuildWebContext _context;
-        private readonly CPUService _cpuService;
 
-        public WC_CPU_BlockService(PCBuildWebContext context, CPUService cpuService)
+        public WC_CPU_BlockService(PCBuildWebContext context)
         {
             _context = context;
-            _cpuService = cpuService;
         }
 
         public async Task<List<WC_CPU_Block>> FindAllAsync()
@@ -35,7 +35,8 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         // Find best Custom WaterCooler CPU Block for the build
-        public async Task<WC_CPU_Block?> FindBestWCCPUBlock(Build build, double budgetValue)
+        public async Task<WC_CPU_Block?> FindBestWCCPUBlock(Build build, double budgetValue, 
+            CPUService _cpuService)
         {
             List<WC_CPU_Block> bestWC_CPU_Block = await FindAllAsync();
             bestWC_CPU_Block = bestWC_CPU_Block
@@ -44,39 +45,12 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .OrderByDescending(c => c.Price)
                 .ToList();
 
-            // Check if there's any selected build part in the component list
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
-            {
-                // Check CPU Socket Type
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedCPU != null)
-                        {
-                            bestWC_CPU_Block = bestWC_CPU_Block
-                                .Where(c => c.CPUSockets.Contains(selectedCPU.CPUSocket))
-                                .ToList();
-                        }
-                    }
-                }
-            }
+            // Check CPU Socket Type
+            CPU? prerequisiteCPU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.WC_CPU_Block, PartType.CPU, _cpuService);
+            bestWC_CPU_Block = prerequisiteCPU is null ? bestWC_CPU_Block : BuildFilters.SimpleFilter(bestWC_CPU_Block, c => c.CPUSockets.Contains(prerequisiteCPU.CPUSocket)).ToList();
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestWC_CPU_Block.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestWC_CPU_Block = bestWC_CPU_Block
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestWC_CPU_Block = BuildFilters.IfAnyFilter(bestWC_CPU_Block, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestWC_CPU_Block.FirstOrDefault();
         }

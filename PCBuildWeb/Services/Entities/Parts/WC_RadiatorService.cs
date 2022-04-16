@@ -4,13 +4,14 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class WC_RadiatorService
+    public class WC_RadiatorService : IBuildPartService<WC_Radiator>
     {
         private readonly PCBuildWebContext _context;
-        
 
         public WC_RadiatorService(PCBuildWebContext context)
         {
@@ -32,7 +33,8 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         // Find best Custom WaterCooler Radiator for the build
-        public async Task<WC_Radiator?> FindBestWCRadiator(Build build, double budgetValue)
+        public async Task<WC_Radiator?> FindBestWCRadiator(Build build, double budgetValue, 
+            CaseService _caseService)
         {
             List<WC_Radiator> bestWC_Radiator = await FindAllAsync();
             bestWC_Radiator = bestWC_Radiator
@@ -42,19 +44,17 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            //The only other check is made at case
+            // Check Case specs against WC Radiator
+            Case? prerequisiteCase = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.WC_Radiator, PartType.Case, _caseService);
+            if (prerequisiteCase is not null)
+            {
+                bestWC_Radiator = BuildFilters.SimpleFilter(bestWC_Radiator, c => ((c.RadiatorSlots <= prerequisiteCase.Number120mmSlots) && (c.RadiatorSize == 120)) ||
+                                                                                   (c.RadiatorSlots <= prerequisiteCase.Number140mmSlots) && ((c.RadiatorSize == 120) || (c.RadiatorSize == 140))).ToList();
+            }
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestWC_Radiator.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestWC_Radiator = bestWC_Radiator
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-            
+            bestWC_Radiator = BuildFilters.IfAnyFilter(bestWC_Radiator, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
+
             return bestWC_Radiator.FirstOrDefault();
         }
 

@@ -4,20 +4,18 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class PSUService
+    public class PSUService : IBuildPartService<PSU>
     {
         private readonly PCBuildWebContext _context;
-        private readonly CPUService _cpuService;
-        private readonly GPUService _gpuService;
 
-        public PSUService(PCBuildWebContext context, CPUService cpuService, GPUService gpuService)
+        public PSUService(PCBuildWebContext context)
         {
             _context = context;
-            _cpuService = cpuService;
-            _gpuService = gpuService;
         }
 
         public async Task<List<PSU>> FindAllAsync()
@@ -37,7 +35,8 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best PSU for the build parameters
-        public async Task<PSU?> FindBestPSU(Build build, double budgetValue)
+        public async Task<PSU?> FindBestPSU(Build build, double budgetValue, 
+            CPUService _cpuService, GPUService _gpuService, CaseService _caseService)
         {
             List<PSU> bestPSU = await FindAllAsync();
             bestPSU = bestPSU
@@ -49,69 +48,30 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ToList();
 
             int neededPower = 0;
-            // Check if there's any selected build part in the component list
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
+            // Sum CPU power needs from the one selected in the build
+            CPU? prerequisiteCPU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.PSU, PartType.CPU, _cpuService);
+            if (prerequisiteCPU is not null)
             {
-                // Sum used power from CPU
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedCPU != null)
-                        {
-                            // If it's possible to Overclock, add 25% more power requirement
-                            neededPower += selectedCPU.Overclockable ? (int)(selectedCPU.Wattage * 1.25) : selectedCPU.Wattage;
-                        }
-                    }
-                }
-                
-                // Add GPU Wattage (Should consider Dual GPU Builds)
-                // Check if theres any build part yet
-                componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-                if (componentsWithBuildParts.Any())
-                {
-                    // Get the GPUs from the build
-                    List<Component>? preRequisiteComponents = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).ToList();
-                    if (preRequisiteComponents != null)
-                    {
-                        foreach (Component innerComponent in preRequisiteComponents)
-                        {
-                            ComputerPart? preRequisiteComputerPart = null;
-                            preRequisiteComputerPart = innerComponent.BuildPart;
-                            if (preRequisiteComputerPart != null)
-                            {
-                                GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                                if (selectedGPU != null)
-                                {
-                                    // If the GPU is and AMD Radeon, add 50% more power requirement for eventual OC. If it's a NVIDIA GeForce, add 20% more power requirement for eventual OC.
-                                    neededPower += selectedGPU.ChipsetBrand == GPUChipsetBrand.AMD_RADEON ? (int)(selectedGPU.Wattage * 1.5) : (int)(selectedGPU.Wattage * 1.2);
-                                }
-                            }
-                        }
-                    }
-                }
+                neededPower += prerequisiteCPU.Overclockable ? (int)(prerequisiteCPU.Wattage * 1.25) : prerequisiteCPU.Wattage;
+            }
+            // Sum GPU power needs from the one selected in the build
+            GPU? prerequisiteGPU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.PSU, PartType.GPU, _gpuService);
+            if (prerequisiteGPU is not null)
+            {
+                neededPower += prerequisiteGPU.ChipsetBrand == GPUChipsetBrand.AMD_RADEON ? (int)(prerequisiteGPU.Wattage * 1.5) : (int)(prerequisiteGPU.Wattage * 1.2);
             }
             
             // Add 10% power margin
-            bestPSU = bestPSU
-                .Where(p => p.Wattage >= (neededPower * 1.1))
-                .ToList();
+            bestPSU = BuildFilters.SimpleFilter(bestPSU,p => p.Wattage >= (neededPower * 1.1)).ToList();
+
+            // Filter PSU by case size and form factor support
+            Case? prerequisiteCase = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.PSU, PartType.Case, _caseService);
+            bestPSU = prerequisiteCase is null ? bestPSU : BuildFilters.SimpleFilter(bestPSU, p => prerequisiteCase.PSUSizes.Contains(p.PSUSize)).ToList();
+            bestPSU = prerequisiteCase is null ? bestPSU : BuildFilters.SimpleFilter(bestPSU, p => p.Length <= prerequisiteCase.MaxPsuLength).ToList();
+
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestPSU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestPSU = bestPSU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestPSU = BuildFilters.IfAnyFilter(bestPSU, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestPSU.FirstOrDefault();
         }
