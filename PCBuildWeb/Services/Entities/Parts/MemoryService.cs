@@ -4,18 +4,18 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class MemoryService
+    public class MemoryService : IBuildPartService<Memory>
     {
         private readonly PCBuildWebContext _context;
-        private readonly MotherboardService _motherboardService;
 
-        public MemoryService(PCBuildWebContext context, MotherboardService motherboardService)
+        public MemoryService(PCBuildWebContext context)
         {
             _context = context;
-            _motherboardService = motherboardService;
         }
 
         public async Task<List<Memory>> FindAllAsync()
@@ -33,7 +33,8 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best Memory for the build parameters
-        public async Task<Memory?> FindBestMemory(Build build, double budgetValue)
+        public async Task<Memory?> FindBestMemory(Build build, double budgetValue, 
+            MotherboardService _motherboardService)
         {
             // Check the size of each memory chip, considering the number of channels desired
             int? memorySize = build.Parameter.TargetMemorySize / build.Parameter.MemoryChannels;
@@ -54,38 +55,12 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // Check if there's any selected build part in the component list
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
-            {
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        Motherboard? selectedMobo = await _motherboardService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedMobo != null)
-                        {
-                            bestMemory = bestMemory
-                                .Where(m => m.Frequency <= selectedMobo.MaxRamSpeed)
-                                .ToList();
-                        }
-                    }
-                }
-            }
+            // Filter Memory for Motherboard supported frequency
+            Motherboard? prerequisiteMobo = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Memory, PartType.Motherboard, _motherboardService);
+            bestMemory = prerequisiteMobo is null ? bestMemory : BuildFilters.SimpleFilter(bestMemory, m => (prerequisiteMobo.MinRamSpeed <= m.Frequency) && (m.Frequency <= prerequisiteMobo.MaxRamSpeed)).ToList();
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestMemory.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestMemory = bestMemory
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestMemory = BuildFilters.IfAnyFilter(bestMemory, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestMemory.FirstOrDefault(); ;
         }

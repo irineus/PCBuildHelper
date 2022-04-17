@@ -1,21 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Building;
-using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class CPUCoolerService
+    public class CPUCoolerService : IBuildPartService<CPUCooler>
     {
         private readonly PCBuildWebContext _context;
-        private readonly CPUService _cpuService;
 
-        public CPUCoolerService(PCBuildWebContext context, CPUService cpuService)
+        public CPUCoolerService(PCBuildWebContext context)
         {
             _context = context;
-            _cpuService = cpuService;
         }
 
         public async Task<List<CPUCooler>> FindAllAsync()
@@ -35,8 +34,14 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best CPUCooler for the build parameters
-        public async Task<CPUCooler?> FindBestCPUCooler(Build build, double budgetValue)
+        public async Task<CPUCooler?> FindBestCPUCooler(Build build, double budgetValue, 
+            CPUService _cpuService, MotherboardService _motherboardService, CaseService _caseService)
         {
+            if (build.Parameter is null)
+                throw new ArgumentNullException(nameof(build.Parameter));
+            if (build.Components is null)
+                throw new ArgumentNullException(nameof(build.Components));
+
             List<CPUCooler> bestCPUCooler = await FindAllAsync();
             bestCPUCooler = bestCPUCooler
                 .Where(c => c.Price <= budgetValue)
@@ -48,47 +53,30 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            // If MustHaveAIOCooler is selected, enforce WaterCooler. If not, it's yet possible to have a WC, but it's not mandatory
-            bestCPUCooler = build.Parameter.MustHaveAIOCooler ?
-                bestCPUCooler.Where(c => c.WaterCooler).ToList() :
-                bestCPUCooler;
-
-            // Check if there's any selected build part in the component list
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
+            if (build.Parameter.MustHaveAIOCooler)
             {
-                // Check if there's a CPU in the build
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPU).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        // Filter Cooler socket by the selected CPU Socket
-                        CPU? selectedCPU = await _cpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedCPU != null)
-                        {
-                            bestCPUCooler = bestCPUCooler.Where(c => c.CPUSockets.Contains(selectedCPU.CPUSocket)).ToList();
-                        }
-                    }
-                }
-            }
+                // If MustHaveAIOCooler is selected, enforce WaterCooler. If not, it's yet possible to have a WC, but it's not mandatory
+                bestCPUCooler = BuildFilters.SimpleFilter(bestCPUCooler, c => c.WaterCooler).ToList();
+                // Check for case fan slots to match the sizer o AIO Radiator
+                Case? prerequisiteCase = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.CPUCooler, PartType.Case, _caseService);
+                bestCPUCooler = prerequisiteCase is null ? bestCPUCooler : BuildFilters
+                    .SimpleFilter(bestCPUCooler, c => ((c.RadiatorSlots <= prerequisiteCase.Number120mmSlots) && (c.RadiatorSize == 120)) || (c.RadiatorSlots <= prerequisiteCase.Number140mmSlots)).ToList();
+            }            
+
+            // Filter Cooler socket by the socket of the selected CPU
+            CPU? prerequisiteCPU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.CPUCooler, PartType.CPU, _cpuService);
+            bestCPUCooler = prerequisiteCPU is null ? bestCPUCooler : BuildFilters.SimpleFilter(bestCPUCooler, c => c.CPUSockets.Contains(prerequisiteCPU.CPUSocket)).ToList();
+
+            // Filter Cooler socket by the socket of the selected Motherboard CPU Socket
+            Motherboard? prerequisiteMobo = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.CPUCooler, PartType.Motherboard, _motherboardService);
+            bestCPUCooler = prerequisiteMobo is null ? bestCPUCooler : BuildFilters.SimpleFilter(bestCPUCooler, c => c.CPUSockets.Contains(prerequisiteMobo.CPUSocket)).ToList();
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestCPUCooler.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCPUCooler = bestCPUCooler
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestCPUCooler = BuildFilters.IfAnyFilter(bestCPUCooler, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestCPUCooler.FirstOrDefault();
         }
-
+        
         public bool CPUCoolerExists(int id)
         {
             return _context.CPUCooler.Any(e => e.Id == id);

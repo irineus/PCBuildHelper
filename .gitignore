@@ -43,7 +43,6 @@ bld/
 Migrations/
 
 #Properties
-Properties/
 .config
 
 # Visual Studio 2017 auto generated files
@@ -369,3 +368,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+*.json

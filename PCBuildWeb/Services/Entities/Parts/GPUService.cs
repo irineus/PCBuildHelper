@@ -4,10 +4,12 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class GPUService
+    public class GPUService : IBuildPartService<GPU>
     {
         private readonly PCBuildWebContext _context;
 
@@ -36,7 +38,7 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best GPU for the build parameters
-        public async Task<GPU?> FindBestGPU(Build build, double budgetValue)
+        public async Task<GPU?> FindBestGPU(Build build, double budgetValue, CaseService _caseService, MotherboardService _motherboardService)
         {
             List<GPU> bestGPU = await FindAllAsync();
             bestGPU = bestGPU
@@ -50,47 +52,24 @@ namespace PCBuildWeb.Services.Entities.Parts
             bestGPU = build.Parameter.MustHaveCustomWC ? bestGPU.Where(c => c.IsWaterCooled).ToList() : bestGPU.Where(c => !c.IsWaterCooled).ToList();
 
             // Check for Clock Target
-            if (build.Parameter.TargetGPUClock is not null)
-            {
-                bestGPU = bestGPU
-                    .Where(c => c.OverclockedCoreFrequency >= build.Parameter.TargetGPUClock)
-                    .ToList();
-            }
+            bestGPU = build.Parameter.TargetGPUClock is null ? bestGPU : bestGPU.Where(c => c.OverclockedCoreFrequency >= build.Parameter.TargetGPUClock).ToList();
+
+            // Filter GPU for Case length support
+            Case? prerequisiteCase = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.GPU, PartType.Case, _caseService);
+            bestGPU = prerequisiteCase is null ? bestGPU : BuildFilters.SimpleFilter(bestGPU, g => g.Length < prerequisiteCase.MaxGPULength).ToList();
 
             // Check Dual GPU Requisites
             if (build.Parameter.MustHaveDualGPU)
             {
-                // Check if theres any build part yet
-                List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-                if (componentsWithBuildParts.Any())
-                {
-                    // Match Motherboard Dual GPU Support
-                    Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
-                    if (preRequisiteComponent != null)
-                    {
-                        ComputerPart? preRequisiteComputerPart = null;
-                        preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                        if (preRequisiteComputerPart is not null)
-                        {
-                            Motherboard selectedMobo = (Motherboard)preRequisiteComputerPart;
-                            bestGPU = bestGPU
-                                    .Where(g => selectedMobo.MultiGPUs.Contains(g.MultiGPU))
-                                    .ToList();
-                        }
-                    }
-                }
+                // Filter only GPUs with MultiGPU Support
+                bestGPU = BuildFilters.SimpleFilter(bestGPU, g => g.MultiGPU is not null).ToList();
+                // Filter GPU for those that matches Motherboard MultiGPU support
+                Motherboard? prerequisiteMotherboard = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.GPU, PartType.Motherboard, _motherboardService);
+                bestGPU = prerequisiteMotherboard is null ? bestGPU : BuildFilters.SimpleFilter(bestGPU, g => prerequisiteMotherboard.MultiGPUs.Contains(g.MultiGPU!)).ToList();
             }
-
+            
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer is not null)
-            {
-                if (bestGPU.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestGPU = bestGPU
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestGPU = BuildFilters.IfAnyFilter(bestGPU, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestGPU.FirstOrDefault();
         }

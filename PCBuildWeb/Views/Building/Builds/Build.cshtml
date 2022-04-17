@@ -15,69 +15,70 @@
             <div class="row">
                 <div class="col-lg-4">
                     <div class="form-group">
-                        <label asp-for="Parameter!.CurrentLevel" class="col-lg-4 control-label"></label>
-                        <input asp-for="Parameter!.CurrentLevel" class="form-control" autofocus="autofocus" placeholder="Enter your current level" />
-                        <span asp-validation-for="Parameter!.CurrentLevel" class="text-danger"></span>
+                        <label asp-for="Parameter.CurrentLevel" class="col-lg-4 control-label"></label>
+                        <input asp-for="Parameter.CurrentLevel" class="form-control" autofocus="autofocus" placeholder="Enter your current level" />
+                        <span asp-validation-for="Parameter.CurrentLevel" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.Budget" class="col-lg-4 control-label"></label>
+                        <label asp-for="Parameter.Budget" class="col-lg-4 control-label"></label>
                         <div class="input-group mb-3">
                             <span class="input-group-text">$</span>
-                            <input asp-for="Parameter!.Budget" class="form-control" placeholder="Enter build max budget" />
+                            <input asp-for="Parameter.Budget" class="form-control" placeholder="Enter build max budget" />
                             <span class="input-group-text">.00</span>                            
                         </div>
-                        <span asp-validation-for="Parameter!.Budget" class="text-danger"></span>
+                        <span asp-validation-for="Parameter.Budget" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.TargetCPUClock" class="col-lg-6 control-label"></label>
-                        <input asp-for="Parameter!.TargetCPUClock" class="form-control" placeholder="Enter the target CPU Clock" />
-                        <span asp-validation-for="Parameter!.TargetCPUClock" class="text-danger"></span>
+                        <label asp-for="Parameter.TargetCPUClock" class="col-lg-6 control-label"></label>
+                        <input asp-for="Parameter.TargetCPUClock" class="form-control" placeholder="Enter the target CPU Clock" />
+                        <span asp-validation-for="Parameter.TargetCPUClock" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.TargetGPUClock" class="col-lg-6 control-label"></label>
-                        <input asp-for="Parameter!.TargetGPUClock" class="form-control" placeholder="Enter the target GPU Clock" />
-                        <span asp-validation-for="Parameter!.TargetGPUClock" class="text-danger"></span>
+                        <label asp-for="Parameter.TargetGPUClock" class="col-lg-6 control-label"></label>
+                        <input asp-for="Parameter.TargetGPUClock" class="form-control" placeholder="Enter the target GPU Clock" />
+                        <span asp-validation-for="Parameter.TargetGPUClock" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.TargetMemorySize" class="col-lg-6 control-label"></label>
-                        <input asp-for="Parameter!.TargetMemorySize" class="form-control" placeholder="Enter the target RAM ammount (GB)" />
-                        <span asp-validation-for="Parameter!.TargetMemorySize" class="text-danger"></span>
+                        <label asp-for="Parameter.TargetMemorySize" class="col-lg-6 control-label"></label>
+                        <input asp-for="Parameter.TargetMemorySize" class="form-control" placeholder="Enter the target RAM ammount (GB)" />
+                        <span asp-validation-for="Parameter.TargetMemorySize" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-lg-4 offset-lg-1">
                     <div class="form-group">
-                        <label asp-for="Parameter!.BuildType" class="col-lg-4 control-label"></label>
-                        <select asp-for="Parameter!.BuildType" class="form-control" asp-items="ViewBag.BuildType"></select>
-                        <span asp-validation-for="Parameter!.BuildType" class="text-danger"></span>
+                        <label asp-for="Parameter.BuildTypeId" class="col-lg-4 control-label"></label>
+                        <select asp-for="Parameter.BuildTypeId" class="form-control" asp-items="ViewBag.BuildType"></select>
+                        <span asp-validation-for="Parameter.BuildTypeId" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.MemoryChannels" class="col-lg-4 control-label"></label>
-                        <select asp-for="Parameter!.MemoryChannels" class="form-control" asp-items="ViewBag.MemoryChannels"></select>
-                        <span asp-validation-for="Parameter!.MemoryChannels" class="text-danger"></span>
+                        <label asp-for="Parameter.MemoryChannels" class="col-lg-4 control-label"></label>
+                        <select asp-for="Parameter.MemoryChannels" class="form-control" asp-items="ViewBag.MemoryChannels"></select>
+                        <span asp-validation-for="Parameter.MemoryChannels" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Parameter!.ManufacturerId" class="col-lg-6 control-label"></label>
-                        <select asp-for="Parameter!.ManufacturerId" class="form-control" asp-items="ViewBag.ManufacturerId"></select>
+                        <label asp-for="Parameter.ManufacturerId" class="col-lg-6 control-label"></label>
+                        <select asp-for="Parameter.ManufacturerId" class="form-control" asp-items="ViewBag.ManufacturerId"></select>
+                        <span asp-validation-for="Parameter.ManufacturerId" class="text-danger"></span>
                     </div>
                     <hr />
                     <div class="form-check form-switch">
                         <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" asp-for="Parameter!.MustHaveAIOCooler" /> @Html.DisplayNameFor(model => model.Parameter!.MustHaveAIOCooler)
+                            <input class="form-check-input" type="checkbox" asp-for="Parameter.MustHaveAIOCooler" /> @Html.DisplayNameFor(model => model.Parameter.MustHaveAIOCooler)
                         </label>
                     </div>
                     <div class="form-group form-switch">
                         <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" asp-for="Parameter!.MustHaveDualGPU" /> @Html.DisplayNameFor(model => model.Parameter!.MustHaveDualGPU)
+                            <input class="form-check-input" type="checkbox" asp-for="Parameter.MustHaveDualGPU" /> @Html.DisplayNameFor(model => model.Parameter.MustHaveDualGPU)
                         </label>
                     </div>
                     <div class="form-group form-switch">
                         <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" asp-for="Parameter!.MustHaveCustomWC" /> @Html.DisplayNameFor(model => model.Parameter!.MustHaveCustomWC)
+                            <input class="form-check-input" type="checkbox" asp-for="Parameter.MustHaveCustomWC" /> @Html.DisplayNameFor(model => model.Parameter.MustHaveCustomWC)
                         </label>
                     </div>
                     <div class="form-group form-switch">
                         <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" asp-for="Parameter!.EnableOpenBench" /> @Html.DisplayNameFor(model => model.Parameter!.EnableOpenBench)
+                            <input class="form-check-input" type="checkbox" asp-for="Parameter.EnableOpenBench" /> @Html.DisplayNameFor(model => model.Parameter.EnableOpenBench)
                         </label>
                     </div>
                 </div>

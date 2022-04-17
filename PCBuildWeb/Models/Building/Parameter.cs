@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PCBuildWeb.Models.Entities.Properties;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Entities.Properties;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -40,7 +41,7 @@ namespace PCBuildWeb.Models.Building
         [Display(Name = "Memory Channels")]
         [Required(ErrorMessage = "{0} is required")]
         [Range(1, 4, ErrorMessage = "{0} should be a value between {1} and {2}")]
-        public int? MemoryChannels { get; set; }
+        public int MemoryChannels { get; set; }
         [Display(Name = "Must have AIO Watercooler?")]
         public bool MustHaveAIOCooler { get; set; }
         [Display(Name = "Must have Dual GPUs?")]
@@ -49,10 +50,11 @@ namespace PCBuildWeb.Models.Building
         public bool MustHaveCustomWC { get; set; }
         [Display(Name = "Enable Open Bench Cases?")]
         public bool EnableOpenBench { get; set; }
+        [ForeignKey("BuildTypeId")]
+        public BuildType? BuildType { get; set; }
         [Display(Name = "Building Type")]
-        [BindProperty]
-        [EnumDataType(typeof(BuildTypeEnum))]
-        public BuildTypeEnum BuildType { get; set; }
-        public List<Priority> PartPriorities { get; set; } = new List<Priority>();
+        [Required(ErrorMessage = "{0} is required")]
+        [Range(1, 999, ErrorMessage = "{0} is required")]
+        public int BuildTypeId { get; set; }
     }
 }

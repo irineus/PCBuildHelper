@@ -4,28 +4,18 @@ using PCBuildWeb.Models.Building;
 using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
 using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class CaseService
+    public class CaseService : IBuildPartService<Case>
     {
         private readonly PCBuildWebContext _context;
-        private readonly CPUCoolerService _cpuCoolerService;
-        private readonly GPUService _gpuService;
-        private readonly MotherboardService _motherboardSerice;
-        private readonly PSUService _psuService;
-        private readonly WC_RadiatorService _wcRadiatorSerice;
 
-        public CaseService(PCBuildWebContext context, CPUCoolerService cpuCoolerService,
-            GPUService gpuService, MotherboardService motherboardSerice, PSUService psuService,
-            WC_RadiatorService wcRadiatorSerice)
+        public CaseService(PCBuildWebContext context)
         {
             _context = context;
-            _cpuCoolerService = cpuCoolerService;
-            _gpuService = gpuService;
-            _motherboardSerice = motherboardSerice;
-            _psuService = psuService;
-            _wcRadiatorSerice = wcRadiatorSerice;
         }
 
         public async Task<List<Case>> FindAllAsync()
@@ -51,13 +41,14 @@ namespace PCBuildWeb.Services.Entities.Parts
         }
 
         //Find best Case for the build parameters
-        public async Task<Case?> FindBestCase(Build build, double budgetValue)
+        public async Task<Case?> FindBestCase(Build build, double budgetValue,
+            CPUCoolerService _cpuCoolerService, GPUService _gpuService, MotherboardService _motherboardService, 
+            PSUService _psuService, WC_RadiatorService _wcRadiatorService)
         {
             List<Case> bestCase = await FindAllAsync();
             bestCase = bestCase
                 .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
-                
                 .OrderByDescending(c => (c.Number120mmSlots + c.Number140mmSlots))
                 .ThenByDescending(c => c.CaseSize)
                 .ThenByDescending(c => c.MaxGPULength)
@@ -66,154 +57,64 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            if (bestCase.Any())
-            {
-                if (!build.Parameter.EnableOpenBench)
-                {
-                    bestCase = bestCase.Where(c => !c.IsOpenBench).ToList();
-                }
-            }
-            else
-            {
-                return null;
-            }
+            bestCase = !build.Parameter.EnableOpenBench ? BuildFilters.SimpleFilter(bestCase, c => !c.IsOpenBench).ToList() : bestCase;
 
             // Check if there's any selected build part in the component list
-            List<Component>? componentsWithBuildParts = build.Components.Where(c => c.BuildPart is not null).ToList();
-            if (componentsWithBuildParts.Any())
+            Motherboard? prerequisiteMobo = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Case, PartType.Motherboard, _motherboardService);
+            bestCase = prerequisiteMobo is null ? bestCase : BuildFilters.SimpleFilter(bestCase, c => c.MoboSizes.Contains(prerequisiteMobo.Size)).ToList();
+
+            // Check CPUCooler specs against case
+            CPUCooler? prerequisiteCPUCooler = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Case, PartType.CPUCooler, _cpuCoolerService);
+            if (prerequisiteCPUCooler is not null)
             {
-                // Check mobo size
-                Component? preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.Motherboard).FirstOrDefault();
-                if (preRequisiteComponent != null)
+                if (prerequisiteCPUCooler is not null)
                 {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
+                    if (prerequisiteCPUCooler.WaterCooler)
                     {
-                        Motherboard? selectedMobo = await _motherboardSerice.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedMobo != null)
+                        // Watercooler should check for radiator slots
+                        int? radiatorFanSize = prerequisiteCPUCooler.RadiatorSize / prerequisiteCPUCooler.RadiatorSlots;
+                        if (radiatorFanSize == 120)
                         {
-                            bestCase = bestCase
-                                .Where(c => c.MoboSizes.Contains(selectedMobo.Size))
-                                .ToList();
+                            // 120mm radiator can go in both 120 or 140mm slots
+                            bestCase = BuildFilters.SimpleFilter(bestCase, c => (c.Number120mmSlots >= prerequisiteCPUCooler.RadiatorSlots) || (c.Number140mmSlots >= prerequisiteCPUCooler.RadiatorSlots)).ToList();
+                        }
+                        if (radiatorFanSize == 140)
+                        {
+                            // restrict for 140mm slots only
+                            bestCase = BuildFilters.SimpleFilter(bestCase, c => c.Number140mmSlots >= prerequisiteCPUCooler.RadiatorSlots).ToList();
                         }
                     }
-                }
-
-                // Check CPUCooler specs against case
-                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.CPUCooler).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        CPUCooler? selectedCPUCooler = await _cpuCoolerService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedCPUCooler != null)
-                        {
-                            if (selectedCPUCooler.WaterCooler)
-                            {
-                                // Watercooler should check for radiator slots
-                                int? radiatorFanSize = selectedCPUCooler.RadiatorSize / selectedCPUCooler.RadiatorSlots;
-                                if (radiatorFanSize == 120)
-                                {
-                                    // 120mm radiator can go in both 120 or 140mm slots
-                                    bestCase = bestCase
-                                        .Where(c => (c.Number120mmSlots >= selectedCPUCooler.RadiatorSlots) || (c.Number140mmSlots >= selectedCPUCooler.RadiatorSlots))
-                                        .ToList();
-                                }
-                                if (radiatorFanSize == 140)
-                                {
-                                    // restrict for 140mm slots only
-                                    bestCase = bestCase
-                                        .Where(c => c.Number140mmSlots >= selectedCPUCooler.RadiatorSlots)
-                                        .ToList();
-                                }
-                            }
-                            // Always check for height
-                            bestCase = bestCase
-                                .Where(c => c.MaxCPUFanHeight > selectedCPUCooler.Height)
-                                .ToList();
-                        }
-                    }
-                }
-
-                // Check WC Radiator specs against case
-                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.WC_Radiator).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        WC_Radiator? selectedWC_Radiator = await _wcRadiatorSerice.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedWC_Radiator != null)
-                        {
-                            int? radiatorFanSize = selectedWC_Radiator.RadiatorSize / selectedWC_Radiator.RadiatorSlots;
-                            if (radiatorFanSize == 120)
-                            {
-                                bestCase = bestCase
-                                    .Where(c => c.Number120mmSlots >= selectedWC_Radiator.RadiatorSlots)
-                                    .ToList();
-                            }
-                            if (radiatorFanSize == 140)
-                            {
-                                bestCase = bestCase
-                                    .Where(c => c.Number140mmSlots >= selectedWC_Radiator.RadiatorSlots)
-                                    .ToList();
-                            }
-                        }
-                    }
-                }
-
-                // Check PSU Length and FormFactor
-                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.PSU).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        PSU? selectedPSU = await _psuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedPSU != null)
-                        {
-                            bestCase = bestCase
-                                .Where(c => c.PSUSizes.Contains(selectedPSU.PSUSize))
-                                .Where(c => c.MaxPsuLength > selectedPSU.Length)
-                                .ToList();
-                        }
-                    }
-                }
-
-                // Check GPU Length
-                preRequisiteComponent = build.Components.Where(c => c.BuildPart!.PartType == PartType.GPU).FirstOrDefault();
-                if (preRequisiteComponent != null)
-                {
-                    ComputerPart? preRequisiteComputerPart = null;
-                    preRequisiteComputerPart = preRequisiteComponent.BuildPart;
-                    if (preRequisiteComputerPart != null)
-                    {
-                        GPU? selectedGPU = await _gpuService.FindByIdAsync(preRequisiteComputerPart.Id);
-                        if (selectedGPU != null)
-                        {
-                            bestCase = bestCase
-                                .Where(c => c.MaxGPULength > selectedGPU.Length)
-                                .ToList();
-                        }
-                    }
+                    // Always check for height
+                    bestCase = BuildFilters.SimpleFilter(bestCase, c => c.MaxCPUFanHeight > prerequisiteCPUCooler.Height).ToList();
                 }
             }
+
+            // Check WC Radiator specs against case
+            WC_Radiator? prerequisiteWCRadiator = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Case, PartType.WC_Radiator, _wcRadiatorService);
+            if (prerequisiteWCRadiator is not null)
+            {
+                int? radiatorFanSize = prerequisiteWCRadiator.RadiatorSize / prerequisiteWCRadiator.RadiatorSlots;
+                if (radiatorFanSize == 120)
+                {
+                    bestCase = BuildFilters.SimpleFilter(bestCase, c => c.Number120mmSlots >= prerequisiteWCRadiator.RadiatorSlots).ToList();
+                }
+                if (radiatorFanSize == 140)
+                {
+                    bestCase = BuildFilters.SimpleFilter(bestCase, c => c.Number140mmSlots >= prerequisiteWCRadiator.RadiatorSlots).ToList();
+                }
+            }
+
+            // Check PSU Length and FormFactor
+            PSU? prerequisitePSU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Case, PartType.PSU, _psuService);
+            bestCase = prerequisitePSU is null ? bestCase : BuildFilters.MultipleFilter(bestCase, c => c.PSUSizes.Contains(prerequisitePSU.PSUSize), 
+                                                                                                  c => c.MaxPsuLength > prerequisitePSU.Length).ToList();
+
+            // Check GPU Length
+            GPU? prerequisiteGPU = await BuildFilters.FindPrerequisitePartAsync(build.Components, PartType.Case, PartType.GPU, _gpuService);
+            bestCase = prerequisiteGPU is null ? bestCase : BuildFilters.SimpleFilter(bestCase, c => c.MaxGPULength > prerequisiteGPU.Length).ToList();
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestCase.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestCase = bestCase
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
+            bestCase = BuildFilters.IfAnyFilter(bestCase, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
 
             return bestCase.FirstOrDefault();
         }

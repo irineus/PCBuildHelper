@@ -12,8 +12,8 @@
 <div class="row">
     <div class="col-sm-4">
         <h5>Build Costs:</h5>
-        <p class="text-success">Total value: $@Model.Components.Sum(c => c.BuildPart!.Price)</p>
-        <p class="text-success">Spare Budget: $@(Model.Parameter.Budget-Model.Components.Sum(c => c.BuildPart!.Price))</p>
+        <p class="text-success">Total value: $@Model.Components.Where(c => c.BuildPart is not null).Sum(c => c.BuildPart!.Price)</p>
+        <p class="text-success">Spare Budget: $@(Model.Parameter.Budget-@Model.Components.Where(c => c.BuildPart is not null).Sum(c => c.BuildPart!.Price))</p>
     </div>
     <div class="col-sm-4">
         <h5>Build Scores:</h5>
@@ -47,93 +47,109 @@
                     int startIdx = colIdx * cardRows;
                     int endIdx = startIdx + cardRows;
                     <div class="col-sm-4">
-                        @*                        <h4>Priority (@(startIdx+1) - @endIdx) Parts</h4>*@
                         @for (int rowIdx = startIdx; rowIdx < endIdx; rowIdx++)
                         {
                             // Since the index can go beyond the number of components, we need to check
                             if (rowIdx < componentsNumber)
                             {
                                 <div class="card text-white bg-success mb-3" style="max-width: 20rem;">
-                                    <div class="card-header">@Model.Components[rowIdx].BuildPart!.PartType</div>
+                                    <div class="card-header">@Model.Components[rowIdx].PartType</div>
                                     <div class="card-body">
-                                        <h6 class="card-title">@string.Concat(Model.Components[rowIdx].BuildPart!.Manufacturer.Name," - ",Model.Components[rowIdx].BuildPart!.Name)</h6>
-                                        <div class="row">
-                                            <div class="col-sm-5">
-                                                <p class="card-text"><small>Price: $@Model.Components[rowIdx].BuildPart!.Price</small></p>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="form-check form-switch">
-                                                    <label class="form-check-label">
-                                                        <input class="form-check-input" type="checkbox" asp-for="@Model.Components[rowIdx].Commited" /><small>@Html.DisplayNameFor(model => model.Components[rowIdx].Commited)</small>
-                                                    </label>
+                                        @if (Model.Components[rowIdx].BuildPart is not null)
+                                        {
+                                            <h6 class="card-title">@string.Concat(Model.Components[rowIdx].BuildPart!.Manufacturer.Name," - ",Model.Components[rowIdx].BuildPart!.Name)</h6>
+                                            <div class="row">
+                                                <div class="col-sm-5">
+                                                    <p class="card-text"><small>Price: $@Model.Components[rowIdx].BuildPart!.Price</small></p>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-check form-switch">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" asp-for="@Model.Components[rowIdx].Commited" /><small>@Html.DisplayNameFor(model => model.Components[rowIdx].Commited)</small>
+                                                        </label>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-5">
-                                                <p class="card-text"><small>Budget: $@Model.Components[rowIdx].BudgetValue</small></p>
+                                            <div class="row">
+                                                <div class="col-sm-5">
+                                                    <p class="card-text"><small>Budget: $@Model.Components[rowIdx].BudgetValue</small></p>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label for="BudgetValue" class="col-sm-5 col-form-label"><small>Change</small></label>
+                                                    <input asp-for="Components[rowIdx].BudgetValue" class="form-control" style="width: 65px; display:inline; padding:unset;" />
+                                                    <span asp-validation-for="Components[rowIdx].BudgetValue" class="text-danger"></span>
+                                                </div>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <label for="BudgetValue" class="col-sm-5 col-form-label"><small>Change</small></label>
-                                                <input asp-for="Components[rowIdx].BudgetValue" class="form-control" style="width: 65px; display:inline; padding:unset;" />
-                                                <span asp-validation-for="Components[rowIdx].BudgetValue" class="text-danger"></span>
-                                            </div>
-                                        </div>
-                                        @* Get some special component properties to show in the component card *@
-                                        @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.CPU)
-                                        {
-                                            CPU cpuComponent = Model.Components[rowIdx].BuildPart as CPU;
-                                            <p class="card-text"><small>Max Clock: @cpuComponent.OverclockedFrequency MHz</small></p>
+                                            @* Get some special component properties to show in the component card *@
+                                            @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.CPU)
+                                            {
+                                                CPU cpuComponent = Model.Components[rowIdx].BuildPart as CPU;
+                                                <p class="card-text"><small>Max Clock: @cpuComponent.OverclockedFrequency MHz</small></p>
+                                            }
+                                            @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.GPU)
+                                            {
+                                                GPU gpuComponent = Model.Components[rowIdx].BuildPart as GPU;
+                                                <p class="card-text"><small>Max Clock: @gpuComponent.OverclockedCoreFrequency MHz</small></p>
+                                            }
+                                            @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.CPUCooler)
+                                            {
+                                                CPUCooler cpuCoolerComponent = Model.Components[rowIdx].BuildPart as CPUCooler;
+                                                <p class="card-text"><small>Air Flow: @cpuCoolerComponent.AirFlow</small></p>
+                                            }
+                                            @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.Storage)
+                                            {
+                                                Storage storageComponent = Model.Components[rowIdx].BuildPart as Storage;
+                                                <p class="card-text"><small>Speed: @storageComponent.Speed MB/s</small></p>
+                                            }
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Id" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Name" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.PartType" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Manufacturer" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.ManufacturerId" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Price" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.SellPrice" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.LevelUnlock" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.LevelPercent" />
+                                            <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Lighting" />
+                                            @if (Model.Components[rowIdx].BuildPart!.Manufacturer is not null)
+                                            {
+                                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Manufacturer!.Id" />
+                                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Manufacturer!.Name" />
+                                            }
                                         }
-                                        @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.GPU)
+                                        else
                                         {
-                                            GPU gpuComponent = Model.Components[rowIdx].BuildPart as GPU;
-                                            <p class="card-text"><small>Max Clock: @gpuComponent.OverclockedCoreFrequency MHz</small></p>
-                                        }
-                                        @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.CPUCooler)
-                                        {
-                                            CPUCooler cpuCoolerComponent = Model.Components[rowIdx].BuildPart as CPUCooler;
-                                            <p class="card-text"><small>Air Flow: @cpuCoolerComponent.AirFlow</small></p>
-                                        }
-                                        @if (@Model.Components[rowIdx].BuildPart!.PartType == PartType.Storage)
-                                        {
-                                            Storage storageComponent = Model.Components[rowIdx].BuildPart as Storage;
-                                            <p class="card-text"><small>Speed: @storageComponent.Speed MB/s</small></p>
+                                            <h6 class="card-title">@Model.Components[rowIdx].PartType not found</h6>
                                         }
                                     </div>
                                 </div>
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Id" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Name" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.PartType" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.ManufacturerId" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Price" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.SellPrice" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.LevelUnlock" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.LevelPercent" />
-                                <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Lighting" />
-                                @if (Model.Components[rowIdx].BuildPart!.Manufacturer is not null)
-                                {
-                                    <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Manufacturer!.Id" />
-                                    <input type="hidden" asp-for="@Model.Components[rowIdx].BuildPart!.Manufacturer!.Name" />
-                                }
+                                <input type="hidden" asp-for="@Model.Components[rowIdx].BudgetPercent" />
+                                <input type="hidden" asp-for="@Model.Components[rowIdx].BudgetValue" />
+                                <input type="hidden" asp-for="@Model.Components[rowIdx].Commited" />
+                                <input type="hidden" asp-for="@Model.Components[rowIdx].Priority" />
+                                <input type="hidden" asp-for="@Model.Components[rowIdx].PartType" />
                             }
                         }
                     </div>
                 }
             }
-            <input type="hidden" asp-for="Parameter.CurrentLevel" />
-            <input type="hidden" asp-for="Parameter.Budget" />
-            <input type="hidden" asp-for="Parameter.ManufacturerId" />
-            <input type="hidden" asp-for="Parameter.TargetScore" />
-            <input type="hidden" asp-for="Parameter.TargetMemorySize" />
-            <input type="hidden" asp-for="Parameter.TargetCPUClock" />
-            <input type="hidden" asp-for="Parameter.TargetGPUClock" />
-            <input type="hidden" asp-for="Parameter.MemoryChannels" />
-            <input type="hidden" asp-for="Parameter.MustHaveAIOCooler" />
-            <input type="hidden" asp-for="Parameter.MustHaveDualGPU" />
-            <input type="hidden" asp-for="Parameter.MustHaveCustomWC" />
-            <input type="hidden" asp-for="Parameter.EnableOpenBench" />
-            <input type="hidden" asp-for="Parameter.BuildType" />
+            <input type="hidden" asp-for="@Model.BuildType.Id" />
+            <input type="hidden" asp-for="@Model.BuildType.Name" />
+            <input type="hidden" asp-for="@Model.Parameter.CurrentLevel" />
+            <input type="hidden" asp-for="@Model.Parameter.Budget" />
+            <input type="hidden" asp-for="@Model.Parameter.PreferredManufacturer" />
+            <input type="hidden" asp-for="@Model.Parameter.ManufacturerId" />
+            <input type="hidden" asp-for="@Model.Parameter.TargetScore" />
+            <input type="hidden" asp-for="@Model.Parameter.TargetMemorySize" />
+            <input type="hidden" asp-for="@Model.Parameter.TargetCPUClock" />
+            <input type="hidden" asp-for="@Model.Parameter.TargetGPUClock" />
+            <input type="hidden" asp-for="@Model.Parameter.MemoryChannels" />
+            <input type="hidden" asp-for="@Model.Parameter.MustHaveAIOCooler" />
+            <input type="hidden" asp-for="@Model.Parameter.MustHaveDualGPU" />
+            <input type="hidden" asp-for="@Model.Parameter.MustHaveCustomWC" />
+            <input type="hidden" asp-for="@Model.Parameter.EnableOpenBench" />
+            <input type="hidden" asp-for="@Model.Parameter.BuildTypeId" />
+            <input type="hidden" asp-for="@Model.Parameter.BuildType" />
         </div>
         <hr />
         <div class="row">

@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PCBuildWeb.Data;
 using PCBuildWeb.Models.Building;
-using PCBuildWeb.Models.Entities.Bases;
 using PCBuildWeb.Models.Entities.Parts;
-using PCBuildWeb.Models.Enums;
+using PCBuildWeb.Services.Interfaces;
+using PCBuildWeb.Utils.Filters;
 
 namespace PCBuildWeb.Services.Entities.Parts
 {
-    public class WC_ReservoirService
+    public class WC_ReservoirService : IBuildPartService<WC_Reservoir>
     {
         private readonly PCBuildWebContext _context;
 
@@ -37,22 +37,16 @@ namespace PCBuildWeb.Services.Entities.Parts
             bestWC_Reservoir = bestWC_Reservoir
                 .Where(c => c.Price <= budgetValue)
                 .Where(c => c.LevelUnlock < build.Parameter.CurrentLevel)
-                .OrderByDescending(c => c.Price)
+                .OrderByDescending(c => c.Lighting.HasValue)
+                .ThenBy(c => c.Lighting)
+                .ThenByDescending(c => c.Price)
                 .ToList();
 
             //The only other check is made at case
 
             // Check for Manufacturer preference
-            if (build.Parameter.PreferredManufacturer != null)
-            {
-                if (bestWC_Reservoir.Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer).Any())
-                {
-                    bestWC_Reservoir = bestWC_Reservoir
-                        .Where(c => c.Manufacturer == build.Parameter.PreferredManufacturer)
-                        .ToList();
-                }
-            }
-            
+            bestWC_Reservoir = BuildFilters.IfAnyFilter(bestWC_Reservoir, c => c.Manufacturer == build.Parameter.PreferredManufacturer).ToList();
+
             return bestWC_Reservoir.FirstOrDefault();
         }
 
