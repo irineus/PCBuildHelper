@@ -45,7 +45,7 @@ namespace PCBuildWeb.Services.Entities.Parts
                 .ThenByDescending(c => c.Price)
                 .ToList();
 
-            var caseFreeSlots = await CheckFanFreeSlots(build, true, _caseService, _cpuCoolerService, _wcRadiatorService);
+            var caseFreeSlots = await CheckFanFreeSlots(build, false, _caseService, _cpuCoolerService, _wcRadiatorService);
             if ((caseFreeSlots.Fan120 > 0) && (caseFreeSlots.Fan140 > 0))
             {
                 // Case support for both 120mm and 140mm, the universal fan will be 120mm

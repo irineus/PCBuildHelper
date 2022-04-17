@@ -471,7 +471,7 @@ namespace PCBuildWeb.Services.Building
                     }
                 }
             }
-            return budgetValue;
+            return Math.Round(budgetValue);
         }
     }
 }

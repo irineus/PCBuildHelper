@@ -63,8 +63,8 @@ namespace PCBuildWeb.Utils.Filters
                 // Both should have a value
                 if ((currentComponent is not null) && (preRequisiteComponent is not null))
                 {
-                    // Only evaluates the prerequisite part if it's priority is higher than the current part
-                    if (preRequisiteComponent.Priority > currentComponent.Priority)
+                    // Only returns the prerequisite part if it's priority is higher (lower number) than the current part
+                    if (preRequisiteComponent.Priority < currentComponent.Priority)
                     {
                         // Get the prerequisite part with the specific data for that part type
                         ComputerPart? buildPart = preRequisiteComponent.BuildPart;
