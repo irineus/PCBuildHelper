@@ -25,7 +25,10 @@ namespace PCBuildWeb.Services.Entities.Properties
         public async Task<List<Manufacturer>> FindAllAsync(string? defaultValue)
         {
             var manufaturerList = await _context.Manufacturer.ToListAsync();
-            manufaturerList.Insert(0, new Manufacturer { Id = 0, Name = defaultValue });
+            if (defaultValue is not null)
+            {
+                manufaturerList.Insert(0, new Manufacturer { Id = 0, Name = defaultValue });
+            }            
             return manufaturerList;
         }
 

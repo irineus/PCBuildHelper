@@ -140,8 +140,11 @@ namespace PCBuildWeb.Controllers.Properties
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var cPUSocket = await _context.CPUSocket.FindAsync(id);
-            _context.CPUSocket.Remove(cPUSocket);
-            await _context.SaveChangesAsync();
+            if (cPUSocket is not null)
+            {
+                _context.CPUSocket.Remove(cPUSocket);
+                await _context.SaveChangesAsync();
+            }            
             return RedirectToAction(nameof(Index));
         }
 

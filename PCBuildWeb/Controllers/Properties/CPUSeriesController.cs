@@ -135,8 +135,11 @@ namespace PCBuildWeb.Controllers.Properties
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var cPUSeries = await _context.CPUSeries.FindAsync(id);
-            _context.CPUSeries.Remove(cPUSeries);
-            await _context.SaveChangesAsync();
+            if (cPUSeries is not null)
+            {
+                _context.CPUSeries.Remove(cPUSeries);
+                await _context.SaveChangesAsync();
+            }            
             return RedirectToAction(nameof(Index));
         }
 

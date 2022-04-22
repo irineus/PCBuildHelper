@@ -140,8 +140,11 @@ namespace PCBuildWeb.Controllers.Properties
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var gPUChipsetSeries = await _context.GPUChipsetSeries.FindAsync(id);
-            _context.GPUChipsetSeries.Remove(gPUChipsetSeries);
-            await _context.SaveChangesAsync();
+            if (gPUChipsetSeries is not null)
+            {
+                _context.GPUChipsetSeries.Remove(gPUChipsetSeries);
+                await _context.SaveChangesAsync();
+            }            
             return RedirectToAction(nameof(Index));
         }
 

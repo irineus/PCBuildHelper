@@ -140,8 +140,11 @@ namespace PCBuildWeb.Controllers.Properties
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var moboChipset = await _context.MoboChipset.FindAsync(id);
-            _context.MoboChipset.Remove(moboChipset);
-            await _context.SaveChangesAsync();
+            if (moboChipset is not null)
+            {
+                _context.MoboChipset.Remove(moboChipset);
+                await _context.SaveChangesAsync();
+            }            
             return RedirectToAction(nameof(Index));
         }
 

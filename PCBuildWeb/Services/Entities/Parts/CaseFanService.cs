@@ -118,7 +118,7 @@ namespace PCBuildWeb.Services.Entities.Parts
 
             // Check if some slots were occuppied by WC Radiator
             WC_Radiator? prerequisiteWCRadiator = await BuildFilters.FindComponentPartAsync(build.Components, PartType.WC_Radiator, _wcRadiatorService);
-            if (prerequisiteWCRadiator != null)
+            if (prerequisiteWCRadiator is not null)
             {
                 int? radiatorFanSize = prerequisiteWCRadiator.RadiatorSize / prerequisiteWCRadiator.RadiatorSlots;
                 if ((radiatorFanSize == 120) && (caseFreeSlots.Fan120 > 0))

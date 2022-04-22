@@ -142,8 +142,11 @@ namespace PCBuildWeb.Controllers.Properties
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var manufacturer = await _context.Manufacturer.FindAsync(id);
-            _context.Manufacturer.Remove(manufacturer);
-            await _context.SaveChangesAsync();
+            if (manufacturer is not null)
+            {
+                _context.Manufacturer.Remove(manufacturer);
+                await _context.SaveChangesAsync();
+            }            
             return RedirectToAction(nameof(Index));
         }
     }
